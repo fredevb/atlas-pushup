@@ -1,0 +1,8 @@
+source;share/atlas-pushup/hook/cmake_prefix_path.ps1
+source;share/atlas-pushup/hook/cmake_prefix_path.dsv
+source;share/atlas-pushup/hook/cmake_prefix_path.sh
+source;share/atlas-pushup/local_setup.bash
+source;share/atlas-pushup/local_setup.dsv
+source;share/atlas-pushup/local_setup.ps1
+source;share/atlas-pushup/local_setup.sh
+source;share/atlas-pushup/local_setup.zsh

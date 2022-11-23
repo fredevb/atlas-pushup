@@ -1,0 +1,6 @@
+Invoking command in '/home/filip/133ws/src/atlas-pushup/atlas-pushup/build/atlas-pushup': /usr/bin/cmake /home/filip/133ws/src/atlas-pushup/atlas-pushup -DCMAKE_INSTALL_PREFIX=/home/filip/133ws/src/atlas-pushup/atlas-pushup/install/atlas-pushup
+Invoked command in '/home/filip/133ws/src/atlas-pushup/atlas-pushup/build/atlas-pushup' returned '0': /usr/bin/cmake /home/filip/133ws/src/atlas-pushup/atlas-pushup -DCMAKE_INSTALL_PREFIX=/home/filip/133ws/src/atlas-pushup/atlas-pushup/install/atlas-pushup
+Invoking command in '/home/filip/133ws/src/atlas-pushup/atlas-pushup/build/atlas-pushup': /usr/bin/cmake --build /home/filip/133ws/src/atlas-pushup/atlas-pushup/build/atlas-pushup -- -j4 -l4
+Invoked command in '/home/filip/133ws/src/atlas-pushup/atlas-pushup/build/atlas-pushup' returned '0': /usr/bin/cmake --build /home/filip/133ws/src/atlas-pushup/atlas-pushup/build/atlas-pushup -- -j4 -l4
+Invoking command in '/home/filip/133ws/src/atlas-pushup/atlas-pushup/build/atlas-pushup': /usr/bin/cmake --install /home/filip/133ws/src/atlas-pushup/atlas-pushup/build/atlas-pushup
+Invoked command in '/home/filip/133ws/src/atlas-pushup/atlas-pushup/build/atlas-pushup' returned '0': /usr/bin/cmake --install /home/filip/133ws/src/atlas-pushup/atlas-pushup/build/atlas-pushup

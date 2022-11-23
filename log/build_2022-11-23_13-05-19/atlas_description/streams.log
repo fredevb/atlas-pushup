@@ -1,0 +1,139 @@
+[0.042s] Invoking command in '/home/filip/133ws/src/atlas_description/build/atlas_description': /usr/bin/cmake /home/filip/133ws/src/atlas_description -DCMAKE_INSTALL_PREFIX=/home/filip/133ws/src/atlas_description/install/atlas_description
+[0.232s] -- The C compiler identification is GNU 9.4.0
+[0.373s] -- The CXX compiler identification is GNU 9.4.0
+[0.384s] -- Check for working C compiler: /usr/bin/cc
+[0.492s] -- Check for working C compiler: /usr/bin/cc -- works
+[0.494s] -- Detecting C compiler ABI info
+[0.610s] -- Detecting C compiler ABI info - done
+[0.629s] -- Detecting C compile features
+[0.631s] -- Detecting C compile features - done
+[0.639s] -- Check for working CXX compiler: /usr/bin/c++
+[0.760s] -- Check for working CXX compiler: /usr/bin/c++ -- works
+[0.761s] -- Detecting CXX compiler ABI info
+[0.879s] -- Detecting CXX compiler ABI info - done
+[0.897s] -- Detecting CXX compile features
+[0.898s] -- Detecting CXX compile features - done
+[0.906s] -- Found ament_cmake: 1.1.4 (/opt/ros/galactic/share/ament_cmake/cmake)
+[0.955s] -- Found PythonInterp: /usr/bin/python3 (found suitable version "3.8.10", minimum required is "3") 
+[0.956s] -- Using PYTHON_EXECUTABLE: /usr/bin/python3
+[1.088s] -- Found ament_lint_auto: 0.10.6 (/opt/ros/galactic/share/ament_lint_auto/cmake)
+[1.209s] -- Added test 'cppcheck' to perform static code analysis on C / C++ code
+[1.209s] -- Configured cppcheck include dirs: 
+[1.210s] -- Configured cppcheck exclude dirs and/or files: 
+[1.211s] -- Added test 'flake8' to check Python code syntax and style conventions
+[1.213s] -- Added test 'lint_cmake' to check CMake code style
+[1.214s] -- Added test 'pep257' to check Python code against some of the style conventions in PEP 257
+[1.222s] -- Added test 'uncrustify' to check C / C++ code style
+[1.222s] -- Configured uncrustify additional arguments: 
+[1.224s] -- Added test 'xmllint' to check XML markup files
+[1.227s] -- Configuring done
+[1.230s] -- Generating done
+[1.232s] -- Build files have been written to: /home/filip/133ws/src/atlas_description/build/atlas_description
+[1.237s] Invoked command in '/home/filip/133ws/src/atlas_description/build/atlas_description' returned '0': /usr/bin/cmake /home/filip/133ws/src/atlas_description -DCMAKE_INSTALL_PREFIX=/home/filip/133ws/src/atlas_description/install/atlas_description
+[1.241s] Invoking command in '/home/filip/133ws/src/atlas_description/build/atlas_description': /usr/bin/cmake --build /home/filip/133ws/src/atlas_description/build/atlas_description -- -j4 -l4
+[1.312s] Invoked command in '/home/filip/133ws/src/atlas_description/build/atlas_description' returned '0': /usr/bin/cmake --build /home/filip/133ws/src/atlas_description/build/atlas_description -- -j4 -l4
+[1.363s] Invoking command in '/home/filip/133ws/src/atlas_description/build/atlas_description': /usr/bin/cmake --install /home/filip/133ws/src/atlas_description/build/atlas_description
+[1.372s] -- Install configuration: ""
+[1.372s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/launch
+[1.380s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/launch/viewatlas.launch.py
+[1.380s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/launch/__init__.py
+[1.381s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes
+[1.381s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes/wheel.obj
+[1.391s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes/base_link.mtl
+[1.392s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes/wheel.mtl
+[1.392s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes/base_link.obj
+[1.428s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/rviz
+[1.428s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/rviz/viewurdf.rviz
+[1.429s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/rviz/urdf.rviz
+[1.429s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/rviz/viewatlas.rviz
+[1.429s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/src
+[1.430s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/src/__init__.py
+[1.430s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf
+[1.430s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/atlas_v5.urdf
+[1.433s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/atlas.urdf
+[1.434s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/install
+[1.434s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/install/setup.ps1
+[1.434s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/install/setup.zsh
+[1.435s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/install/local_setup.ps1
+[1.435s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/install/local_setup.zsh
+[1.435s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/install/setup.sh
+[1.436s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/install/_local_setup_util_ps1.py
+[1.436s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/install/local_setup.sh
+[1.436s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/install/setup.bash
+[1.436s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/install/_local_setup_util_sh.py
+[1.437s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/install/.colcon_install_layout
+[1.437s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/install/local_setup.bash
+[1.437s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/install/COLCON_IGNORE
+[1.437s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/build
+[1.437s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/build/.built_by
+[1.437s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/build/COLCON_IGNORE
+[1.437s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/atlasfixed.urdf
+[1.438s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/log
+[1.438s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/log/latest
+[1.438s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/log/build_2022-11-23_13-05-14
+[1.438s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/log/build_2022-11-23_13-05-14/logger_all.log
+[1.438s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/log/build_2022-11-23_13-05-14/events.log
+[1.438s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/log/latest_build
+[1.438s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/urdf/log/COLCON_IGNORE
+[1.438s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/materials
+[1.438s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/materials/textures
+[1.439s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/materials/textures/extremities_diffuse_unplugged.jpg
+[1.439s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/materials/textures/atlas_DRC_carbon_fiber.png
+[1.439s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/materials/textures/drc_labels_1.jpg
+[1.439s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/materials/textures/drc_torso_head_diffuse.jpg
+[1.441s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/materials/textures/torso_diffuse_unplugged.jpg
+[1.443s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/materials/textures/drc_head_diffuse.png
+[1.449s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/materials/textures/torso_diffuse.png
+[1.456s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/materials/textures/atlas_DRC_1.png
+[1.463s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/materials/textures/extremities_diffuse.png
+[1.478s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/materials/textures/CMakeLists.txt
+[1.478s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/materials/textures/atlas_DRC_dark_1.png
+[1.482s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/materials/textures/atlas_cage_and_camera_diffuse_flat.jpg
+[1.483s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/materials/textures/drc_extremities_diffuse.jpg
+[1.489s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/materials/textures/right_leg_diffuse_unplugged.jpg
+[1.490s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/materials/CMakeLists.txt
+[1.490s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged
+[1.491s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/l_clav.dae
+[1.491s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/l_lleg.dae
+[1.491s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/mtorso.dae
+[1.492s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/l_hand.dae
+[1.492s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/r_uglut.dae
+[1.492s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/r_lglut.dae
+[1.492s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/r_uarm.dae
+[1.493s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/l_larm.dae
+[1.493s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/ltorso.dae
+[1.493s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/r_uleg.dae
+[1.493s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/l_lglut.dae
+[1.494s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/r_clav.dae
+[1.494s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/l_uglut.dae
+[1.494s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/pelvis.dae
+[1.494s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/r_foot.dae
+[1.494s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/utorso.dae
+[1.496s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/l_scap.dae
+[1.496s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/l_foot.dae
+[1.496s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/l_uleg.dae
+[1.497s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/l_uarm.dae
+[1.497s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/r_lleg.dae
+[1.497s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/r_talus.dae
+[1.498s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/r_hand.dae
+[1.498s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/r_scap.dae
+[1.498s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/r_larm.dae
+[1.498s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/l_talus.dae
+[1.499s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/r_farm.dae
+[1.499s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/meshes_unplugged/l_farm.dae
+[1.499s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/ament_index/resource_index/package_run_dependencies/atlas_description
+[1.500s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/ament_index/resource_index/parent_prefix_path/atlas_description
+[1.500s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/environment/ament_prefix_path.sh
+[1.500s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/environment/ament_prefix_path.dsv
+[1.501s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/environment/path.sh
+[1.501s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/environment/path.dsv
+[1.501s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/local_setup.bash
+[1.502s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/local_setup.sh
+[1.502s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/local_setup.zsh
+[1.502s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/local_setup.dsv
+[1.502s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/package.dsv
+[1.502s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/ament_index/resource_index/packages/atlas_description
+[1.502s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/cmake/atlas_descriptionConfig.cmake
+[1.503s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/cmake/atlas_descriptionConfig-version.cmake
+[1.503s] -- Installing: /home/filip/133ws/src/atlas_description/install/atlas_description/share/atlas_description/package.xml
+[1.505s] Invoked command in '/home/filip/133ws/src/atlas_description/build/atlas_description' returned '0': /usr/bin/cmake --install /home/filip/133ws/src/atlas_description/build/atlas_description

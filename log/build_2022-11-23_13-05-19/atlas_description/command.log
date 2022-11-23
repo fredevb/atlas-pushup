@@ -1,0 +1,6 @@
+Invoking command in '/home/filip/133ws/src/atlas_description/build/atlas_description': /usr/bin/cmake /home/filip/133ws/src/atlas_description -DCMAKE_INSTALL_PREFIX=/home/filip/133ws/src/atlas_description/install/atlas_description
+Invoked command in '/home/filip/133ws/src/atlas_description/build/atlas_description' returned '0': /usr/bin/cmake /home/filip/133ws/src/atlas_description -DCMAKE_INSTALL_PREFIX=/home/filip/133ws/src/atlas_description/install/atlas_description
+Invoking command in '/home/filip/133ws/src/atlas_description/build/atlas_description': /usr/bin/cmake --build /home/filip/133ws/src/atlas_description/build/atlas_description -- -j4 -l4
+Invoked command in '/home/filip/133ws/src/atlas_description/build/atlas_description' returned '0': /usr/bin/cmake --build /home/filip/133ws/src/atlas_description/build/atlas_description -- -j4 -l4
+Invoking command in '/home/filip/133ws/src/atlas_description/build/atlas_description': /usr/bin/cmake --install /home/filip/133ws/src/atlas_description/build/atlas_description
+Invoked command in '/home/filip/133ws/src/atlas_description/build/atlas_description' returned '0': /usr/bin/cmake --install /home/filip/133ws/src/atlas_description/build/atlas_description
