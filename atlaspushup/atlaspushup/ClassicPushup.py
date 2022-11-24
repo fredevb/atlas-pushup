@@ -28,6 +28,21 @@ def spline(t, T, p0, pf):
     v =      (pf-p0) * (6*t   /T**2 - 6*t**2/T**3)
     return (p, v)
 
+def get_theta(t):
+    start_ang = np.radians(61)
+    end_ang = np.radians(80)
+    if t < 4:
+        p ,v= spline(t, 4, start_ang, end_ang)
+    elif t > 4:
+        t = t-4
+        p ,v= spline(t, 4, start_ang, end_ang)
+        
+        p = end_ang - p + start_ang
+    return p 
+
+def xyz_pelvis_from_theta(theta ):
+    return pxyz(np.sin(theta)*0.95, 0.0, np.cos(theta)*0.9 + 0.17)
+
 
 #
 #   Trajectory Class
@@ -111,8 +126,9 @@ class Trajectory():
 
     def evaluatePelvis(self, t, dt):
         # update to find pxyz and rotation at given time
-        a, adot = spline(t%3, 3, np.pi/3, np.pi/2)
-        ppelvis = pxyz(np.sin(a), 0, 0.95 - np.sin(a) + 0.1) # 0.95 should be height of pelvis, 0.1 should be height of foot
+        t = t%8
+        a = get_theta(t)
+        ppelvis = xyz_pelvis_from_theta(a) # 0.95 should be height of pelvis, 0.1 should be height of foot
         Rpelvis = Roty(a)
         Tpelvis = T_from_Rp(Rpelvis, ppelvis)
         self.Tpelvis = Tpelvis
