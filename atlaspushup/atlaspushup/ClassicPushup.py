@@ -35,20 +35,24 @@ def spline(t, T, p0, pf):
 class Trajectory():
     # Initialization.
     def __init__(self, node):
-        #self.chain = KinematicChain(node, 'world', 'l_scap', self.jointnames())
+        l = ['back_bkz', 'back_bky', 'back_bkx', 'l_arm_shz', 'l_arm_shx', 'l_arm_ely', 'l_arm_elx', 'l_arm_wry', 'l_arm_wrx', 'l_arm_wry2']
+        r = ['back_bkz', 'back_bky', 'back_bkx', 'r_arm_shz', 'r_arm_shx', 'r_arm_ely', 'r_arm_elx', 'r_arm_wry', 'r_arm_wrx', 'r_arm_wry2']
+        self.rchain = KinematicChain(node, 'pelvis', 'r_hand', r)
+        self.lchain = KinematicChain(node, 'pelvis', 'l_hand', l)
 
         # initialize one kinematic chain list two feet two hands
         # initialize starting position of qoints and pelvis
         # initialize final position of pelvis and joints?
         self.Tpelvis = None
-        self.q0 = np.array([0.0 for i in range(len(self.jointnames()))]).reshape((-1,1))
+        self.q0 = np.array([0.0 for i in range(len(l))]).reshape((-1,1))
         self.q = self.q0
         # initialize atlas dimensions
         self.shoulderHeight = 10
         self.upperArmLength = 10
         self.lowerArmLength = 10
 
-        #self.chain.setjoints(self.q)
+        self.lchain.setjoints(self.q)
+        self.rchain.setjoints(self.q)
 
 
         #raise NotImplementedError
@@ -112,6 +116,7 @@ class Trajectory():
         Rpelvis = Roty(a)
         Tpelvis = T_from_Rp(Rpelvis, ppelvis)
         self.Tpelvis = Tpelvis
+        print(Tpelvis)
         return Tpelvis
 
     def pelvisRotationAngle(self, t, dt):
