@@ -28,7 +28,9 @@ import numpy as np
 from asyncio            import Future
 from rclpy.node         import Node
 from sensor_msgs.msg    import JointState
-
+from tf2_ros            import TransformBroadcaster
+from geometry_msgs.msg  import Vector3, Quaternion, Transform
+from geometry_msgs.msg  import TransformStamped
 
 #
 #   Trajectory Generator Node Class
@@ -114,3 +116,57 @@ class GeneratorNode(Node):
         cmdmsg.position     = q                 # List of joint positions
         cmdmsg.velocity     = qdot              # List of joint velocities
         self.pub.publish(cmdmsg)
+
+
+#
+#   Demo Node Class
+#
+class DemoNode(Node):
+    # Initialization.
+    def __init__(self, name, rate):
+        # Initialize the node, naming it as specified
+        super().__init__(name)
+
+        # In addition to any publishers, create a broadcaster to
+        # define the pelvis transform w.r.t. the world.
+
+        # Initialize the transform broadcaster
+        self.broadcaster = TransformBroadcaster(self)
+
+        # Create a timer to keep calculating/sending commands.
+        self.starttime = self.get_clock().now()
+        self.servotime = self.starttime
+        self.timer     = self.create_timer(1/float(rate), self.update)
+
+        self.t  = 0.0
+        self.dt = self.timer.timer_period_ns * 1e-9
+        self.get_logger().info("Running with dt of %f seconds (%fHz)" %
+                               (self.dt, rate))
+
+    # Shutdown
+    def shutdown(self):
+        # Destroy the timer, then shut down the node.
+        self.timer.destroy()
+        self.destroy_node()
+
+    # Update - send a new joint command every time step.
+    def update(self):
+        # Grab the current time.  But to avoid the time jitter in
+        # timing, enforce a constant time step.
+        now     = self.get_clock().now()
+        self.t += self.dt
+        t       = self.t
+        dt      = self.dt
+
+        # Compute position/orientation of the pelvis (w.r.t. world).
+        ppelvis = pxyz(0.0, 0.5, 1.5 + 0.5 * np.sin(t/2))
+        Rpelvis = Rotz(np.sin(t))
+        Tpelvis = T_from_Rp(Rpelvis, ppelvis)
+        
+        # Build up and send the Pelvis w.r.t. World Transform!
+        trans = TransformStamped()
+        trans.header.stamp    = self.get_clock().now().to_msg()
+        trans.header.frame_id = 'world'
+        trans.child_frame_id  = 'pelvis'
+        trans.transform       = transform_from_T(Tpelvis)
+        self.broadcaster.sendTransform(trans)

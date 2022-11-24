@@ -12,7 +12,7 @@
 import rclpy
 import numpy as np
 
-from atlaspushup.GeneratorNode     import GeneratorNode
+from atlaspushup.GeneratorNode     import GeneratorNode, DemoNode
 from atlaspushup.KinematicChain    import KinematicChain
 from atlaspushup.TransformHelpers  import *
 
