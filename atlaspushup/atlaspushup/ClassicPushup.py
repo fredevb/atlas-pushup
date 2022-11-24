@@ -116,7 +116,6 @@ class Trajectory():
         Rpelvis = Roty(a)
         Tpelvis = T_from_Rp(Rpelvis, ppelvis)
         self.Tpelvis = Tpelvis
-        print(Tpelvis)
         return Tpelvis
 
     def pelvisRotationAngle(self, t, dt):

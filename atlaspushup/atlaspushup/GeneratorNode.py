@@ -173,4 +173,5 @@ class DemoNode(Node):
         trans.header.frame_id = 'world'
         trans.child_frame_id  = 'pelvis'
         trans.transform       = transform_from_T(Tpelvis)
+        print(trans)
         self.broadcaster.sendTransform(trans)
