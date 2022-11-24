@@ -45,6 +45,8 @@ class GeneratorNode(Node):
         self.trajectory = Trajectory(self)
         self.jointnames = self.trajectory.jointnames()
 
+        self.demoNode = DemoNode(name, rate, self.trajectory)
+
         # Add a publisher to send the joint commands.
         self.pub = self.create_publisher(JointState, '/joint_states', 10)
 
@@ -90,6 +92,7 @@ class GeneratorNode(Node):
 
     # Update - send a new joint command every time step.
     def update(self):
+        # transform is the pelvis transform
         # Grab the current time.
         now = self.get_clock().now()
         t   = (now - self.starttime).nanoseconds * 1e-9
@@ -102,8 +105,10 @@ class GeneratorNode(Node):
         t  = self.t
         dt = self.dt
 
+        self.demoNode.update()
+
         # Compute the desired joint positions and velocities for this time.
-        desired = self.trajectory.evaluate(t, dt)
+        desired = self.trajectory.evaluateJoints(t, dt)
         if desired is None:
             self.future.set_result("Trajectory has ended")
             return
@@ -123,10 +128,10 @@ class GeneratorNode(Node):
 #
 class DemoNode(Node):
     # Initialization.
-    def __init__(self, name, rate):
+    def __init__(self, name, rate, trajectory):
         # Initialize the node, naming it as specified
         super().__init__(name)
-
+        self.trajectory = trajectory
         # In addition to any publishers, create a broadcaster to
         # define the pelvis transform w.r.t. the world.
 
@@ -159,9 +164,7 @@ class DemoNode(Node):
         dt      = self.dt
 
         # Compute position/orientation of the pelvis (w.r.t. world).
-        ppelvis = pxyz(0.0, 0.5, 1.5 + 0.5 * np.sin(t/2))
-        Rpelvis = Rotz(np.sin(t))
-        Tpelvis = T_from_Rp(Rpelvis, ppelvis)
+        Tpelvis = self.trajectory.evaluatePelvis(t, dt)
         
         # Build up and send the Pelvis w.r.t. World Transform!
         trans = TransformStamped()
