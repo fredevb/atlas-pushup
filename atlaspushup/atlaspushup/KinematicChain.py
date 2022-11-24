@@ -119,6 +119,7 @@ class KinematicChain():
         self.joints = []
         frame = tipframe
         while (frame != baseframe):
+            print(frame)
             joint = next((j for j in robot.joints if j.child == frame), None)
             if (joint is None):
                 self.error("Unable find joint connecting to '%s'" % frame)

@@ -35,18 +35,23 @@ def spline(t, T, p0, pf):
 class Trajectory():
     # Initialization.
     def __init__(self, node):
+        #self.chain = KinematicChain(node, 'world', 'l_scap', self.jointnames())
 
         # initialize one kinematic chain list two feet two hands
         # initialize starting position of qoints and pelvis
         # initialize final position of pelvis and joints?
         self.Tpelvis = None
-
+        self.q0 = np.array([0.0 for i in range(len(self.jointnames()))]).reshape((-1,1))
+        self.q = self.q0
         # initialize atlas dimensions
         self.shoulderHeight = 10
         self.upperArmLength = 10
         self.lowerArmLength = 10
 
-        raise NotImplementedError
+        #self.chain.setjoints(self.q)
+
+
+        #raise NotImplementedError
 
 
     # Declare the joint names.
@@ -70,8 +75,11 @@ class Trajectory():
         # have pelvis trajectory as seperate method to evaluate so one method evaluateJoints, one evaluatePelvis
         # compute desired x from pelvis and do intervse kinematics
 
-        shoulderq, shoulderqdot, elbowq, elbowqdot = self.armJoints(self.pelvisRotationAngle(t)) # compute h
-
+        # xdesired is constant to world frame and changes to pelvis frame
+        # using this compute xddot
+        # then do inverse kinematics for q
+        q = self.q
+        return (q.flatten().tolist(), q.flatten().tolist())
         raise NotImplementedError
 
         # Grab the last joint value and task error.
@@ -108,14 +116,6 @@ class Trajectory():
 
     def pelvisRotationAngle(self, t, dt):
         return np.sin(t)
-
-    def armJoints(self, theta, h = 0):
-        d = math.sin(theta)*self.shoulderHeight - h
-        shoulderq = math.pi/2 - theta
-        shoulderqdot = -1
-        elbowq = math.acos((self.upperArmLength**2 + self.lowerArmLength**2 - d**2)/(2*self.upperArmLength*self.lowerArmLength))
-        elbowqdot = None
-        return (shoulderq, shoulderqdot, elbowq, elbowqdot)
 
 #
 #  Main Code
