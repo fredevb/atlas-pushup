@@ -68,17 +68,16 @@ class Trajectory():
     # Declare the joint names.
     def jointnames(self):
         return [
-            'back_bkx', 'back_bkx', 'back_bky',
-            'back_bkz', 'l_arm_elx', 'l_arm_ely',
-            'l_arm_shx', 'l_arm_shz', 'l_arm_wrx',
-            'l_arm_wry', 'l_arm_wry2', 'l_leg_akx',
-            'l_leg_aky', 'l_leg_hpx', 'l_leg_hpy',
-            'l_leg_hpz', 'l_leg_kny', 'neck_ry',
-            'r_arm_elx', 'r_arm_ely', 'r_arm_shx',
-            'r_arm_shz', 'r_arm_wrx', 'r_arm_wry',
-            'r_arm_wry2', 'r_leg_arollkx', 'r_leg_aky',
-            'r_leg_hpx', 'r_leg_hpy', 'r_leg_hpz',
-            'r_leg_kny'
+            'back_bkx', 'back_bky', 'back_bkz', 
+            'l_arm_elx', 'l_arm_ely', 'l_arm_shx', 
+            'l_arm_shz', 'l_arm_wrx', 'l_arm_wry',
+            'l_arm_wry2', 'l_leg_akx', 'l_leg_aky', 
+            'l_leg_hpx', 'l_leg_hpy', 'l_leg_hpz',
+            'l_leg_kny', 'neck_ry', 'r_arm_elx', 
+            'r_arm_ely', 'r_arm_shx', 'r_arm_shz', 
+            'r_arm_wrx', 'r_arm_wry', 'r_arm_wry2',
+            'r_leg_akx', 'r_leg_aky', 'r_leg_hpx',
+             'r_leg_hpy', 'r_leg_hpz', 'r_leg_kny'
             ]
 
     # Evaluate at the given time.  This was last called (dt) ago.
@@ -90,6 +89,7 @@ class Trajectory():
         # using this compute xddot
         # then do inverse kinematics for q
         q =  np.array([0.0 for i in range(len(self.jointnames()))]).reshape((-1,1))
+        q[7] = -np.pi/2
         return (q.flatten().tolist(), q.flatten().tolist())
 
         # Grab the last joint value and task error.

@@ -60,12 +60,12 @@ def generate_launch_description():
         on_exit    = Shutdown())
 
     # Configure a node for the GUI
-    node_gui = Node(
-        name       = 'gui', 
-        package    = 'joint_state_publisher_gui',
-        executable = 'joint_state_publisher_gui',
-        output     = 'screen',
-        on_exit    = Shutdown())
+    # node_gui = Node(
+    #     name       = 'gui', 
+    #     package    = 'joint_state_publisher_gui',
+    #     executable = 'joint_state_publisher_gui',
+    #     output     = 'screen',
+    #     on_exit    = Shutdown())
 
     # Configure a node for the pirouette demo.
     node_pushup = Node(
@@ -86,6 +86,6 @@ def generate_launch_description():
         # Start the robot_state_publisher, RVIZ, the GUI, and the demo.
         node_robot_state_publisher,
         node_rviz,
-        node_gui,
+        # node_gui,
         node_pushup,
     ])
