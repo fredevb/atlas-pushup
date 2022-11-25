@@ -54,7 +54,7 @@ class Trajectory():
         # self.llegchain = KinematicChain(node, 'pelvis', 'l_foot', lleg)
 
         # initialize pelvis data
-        self.pelvisStartAngle = np.radians(60)
+        self.pelvisStartAngle = np.radians(57.2)
         self.pelvisEndAngle = np.radians(80)
         Rpelvis, ppelvis = self.getPelvisData(0)
         self.Tpelvis = T_from_Rp(Rpelvis, ppelvis)
@@ -62,9 +62,12 @@ class Trajectory():
 
         # initialize qs and xs
         # initial x (6x1 - 3x1 for left hand, 3x1 for right hand) with respect to world frame
-        self.x0 = None
+        rHandx = pxyz(1.32155,-0.2256,0.115332)
+        lHandx = pxyz(1.32155,0.2256,0.115332)
+        self.xd = np.vstack((rHandx, lHandx))
         # initial joints 30x1 for starting pushup position relative to ???
-        self.q0 = None 
+        self.q0 = np.array([0,0,0,0,0,-0.5,-np.pi/2,0,0,0,0,0,0,0,0,0,0,0,0,0.5,np.pi/2,0,0,0,0,0,0,0,0,0]).reshape((-1,1))
+
         # change to use q0 once q0 is known to be correct
         self.q = np.array([0.0 for i in range(len(larm))]).reshape((-1,1))
 
@@ -110,8 +113,7 @@ class Trajectory():
         # xdesired is constant to world frame and changes to pelvis frame
         # using this compute xddot
         # then do inverse kinematics for q
-        q =  np.array([0.0 for i in range(len(self.jointnames()))]).reshape((-1,1))
-        q[6] = -np.pi/2
+        q =  self.q0
         return (q.flatten().tolist(), q.flatten().tolist())
 
         # Grab the last joint value and task error.
