@@ -90,7 +90,6 @@ class Trajectory():
         # using this compute xddot
         # then do inverse kinematics for q
         q =  np.array([0.0 for i in range(len(self.jointnames()))]).reshape((-1,1))
-
         return (q.flatten().tolist(), q.flatten().tolist())
 
         # Grab the last joint value and task error.
