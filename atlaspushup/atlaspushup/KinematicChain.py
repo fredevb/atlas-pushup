@@ -150,6 +150,7 @@ class KinematicChain():
         # Confirm this matches the expectation
         jointnames = [j.name for j in self.joints if j.type != 'fixed']
         if jointnames != list(expectedjointnames):
+            print("EXPECTED JOINT NAMES ARE: ", jointnames)
             self.error("Chain does not match the expected names: " +
                   str(expectedjointnames))
 

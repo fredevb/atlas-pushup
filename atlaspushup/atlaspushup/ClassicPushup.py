@@ -31,38 +31,48 @@ def spline(t, T, p0, pf):
 #
 #   Trajectory Class
 #
+# IDEA: IMPLEMENT INVERSE KINEMATICS OF HANDS FIRST, THEN ADD FEET
 class Trajectory():
     # Initialization.
     def __init__(self, node):
         # initialize atlas dimensions
-        self.shoulderHeight = 10
-        self.upperArmLength = 10
-        self.lowerArmLength = 10
         self.legLength = 0.941
         self.footLength = 0.17
 
         # initialize pushup data
         self.pushupDuration = 8
 
-        # initialize kinematic chain
-        l = ['back_bkz', 'back_bky', 'back_bkx', 'l_arm_shz', 'l_arm_shx', 'l_arm_ely', 'l_arm_elx', 'l_arm_wry', 'l_arm_wrx', 'l_arm_wry2']
-        r = ['back_bkz', 'back_bky', 'back_bkx', 'r_arm_shz', 'r_arm_shx', 'r_arm_ely', 'r_arm_elx', 'r_arm_wry', 'r_arm_wrx', 'r_arm_wry2']
-        self.rchain = KinematicChain(node, 'pelvis', 'r_hand', r)
-        self.lchain = KinematicChain(node, 'pelvis', 'l_hand', l)
+        # initialize kinematic chain - neck joint currently not in any chain
+        larm = ['back_bkz', 'back_bky', 'back_bkx', 'l_arm_shz', 'l_arm_shx', 'l_arm_ely', 'l_arm_elx', 'l_arm_wry', 'l_arm_wrx', 'l_arm_wry2']
+        rarm = ['back_bkz', 'back_bky', 'back_bkx', 'r_arm_shz', 'r_arm_shx', 'r_arm_ely', 'r_arm_elx', 'r_arm_wry', 'r_arm_wrx', 'r_arm_wry2']
+        # lleg = ['l_leg_hpz', 'l_leg_hpx', 'l_leg_hpy', 'l_leg_kny', 'l_leg_aky', 'l_leg_akx']
+        # rleg = ['r_leg_hpz', 'r_leg_hpx', 'r_leg_hpy', 'r_leg_kny', 'r_leg_aky', 'r_leg_akx']
+
+        self.rarmchain = KinematicChain(node, 'pelvis', 'r_hand', rarm)
+        self.larmchain = KinematicChain(node, 'pelvis', 'l_hand', larm)
+        # self.rlegchain = KinematicChain(node, 'pelvis', 'r_foot', rleg)
+        # self.llegchain = KinematicChain(node, 'pelvis', 'l_foot', lleg)
+
+        # initialize pelvis data
         self.pelvisStartAngle = np.radians(60)
         self.pelvisEndAngle = np.radians(80)
-
-        # initialize one kinematic chain list two feet two hands
-        # initialize starting position of qoints and pelvis
-        # initialize final position of pelvis and joints?
         Rpelvis, ppelvis = self.getPelvisData(0)
         self.Tpelvis = T_from_Rp(Rpelvis, ppelvis)
-        self.q0 = np.array([0.0 for i in range(len(l))]).reshape((-1,1))
-        self.q = self.q0
 
 
-        self.lchain.setjoints(self.q)
-        self.rchain.setjoints(self.q)
+        # initialize qs and xs
+        # initial x (6x1 - 3x1 for left hand, 3x1 for right hand) with respect to world frame
+        self.x0 = None
+        # initial joints 30x1 for starting pushup position relative to ???
+        self.q0 = None 
+        # change to use q0 once q0 is known to be correct
+        self.q = np.array([0.0 for i in range(len(larm))]).reshape((-1,1))
+
+        # set joints
+        self.larmchain.setjoints(np.array([0.0 for i in range(len(larm))]).reshape((-1,1)))
+        self.rarmchain.setjoints(np.array([0.0 for i in range(len(rarm))]).reshape((-1,1)))
+        # self.llegchain.setjoints(np.array([0.0 for i in range(len(lleg))]).reshape((-1,1)))
+        # self.rlegchain.setjoints(np.array([0.0 for i in range(len(rleg))]).reshape((-1,1)))
 
 
     # Declare the joint names.
@@ -77,8 +87,20 @@ class Trajectory():
             'r_arm_ely', 'r_arm_shx', 'r_arm_shz', 
             'r_arm_wrx', 'r_arm_wry', 'r_arm_wry2',
             'r_leg_akx', 'r_leg_aky', 'r_leg_hpx',
-             'r_leg_hpy', 'r_leg_hpz', 'r_leg_kny'
+            'r_leg_hpy', 'r_leg_hpz', 'r_leg_kny',
             ]
+
+    # extracts joint values of the joints in desiredJointLabels from a 30x1 list of all joints
+    def getSpecificJoints(self, allJoints, desiredJointLabels):
+        raise NotImplementedError
+
+    # input should be list of (Jacobian, related_joint_labels) - returns single Jacobian of size nx30 where n is the number of tasks across all jaobians
+    def stackJacobians(jacobians):
+        raise NotImplementedError
+
+    # method to take multiple lists of joint values of form (joint_values, related_joint_labels) and return single 30x1 list of joint values
+    def combineIntoAllJoints(jointLists):
+        raise NotImplementedError
 
     # Evaluate at the given time.  This was last called (dt) ago.
     def evaluateJoints(self, t, dt):
@@ -89,7 +111,7 @@ class Trajectory():
         # using this compute xddot
         # then do inverse kinematics for q
         q =  np.array([0.0 for i in range(len(self.jointnames()))]).reshape((-1,1))
-        q[7] = -np.pi/2
+        q[6] = -np.pi/2
         return (q.flatten().tolist(), q.flatten().tolist())
 
         # Grab the last joint value and task error.
