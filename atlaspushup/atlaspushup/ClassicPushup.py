@@ -28,49 +28,41 @@ def spline(t, T, p0, pf):
     v =      (pf-p0) * (6*t   /T**2 - 6*t**2/T**3)
     return (p, v)
 
-def get_theta(t):
-    start_ang = np.radians(61)
-    end_ang = np.radians(80)
-    if t < 4:
-        p ,v= spline(t, 4, start_ang, end_ang)
-    elif t > 4:
-        t = t-4
-        p ,v= spline(t, 4, start_ang, end_ang)
-        
-        p = end_ang - p + start_ang
-    return p 
-
-def xyz_pelvis_from_theta(theta ):
-    return pxyz(np.sin(theta)*0.95, 0.0, np.cos(theta)*0.9 + 0.17)
-
-
 #
 #   Trajectory Class
 #
 class Trajectory():
     # Initialization.
     def __init__(self, node):
-        l = ['back_bkz', 'back_bky', 'back_bkx', 'l_arm_shz', 'l_arm_shx', 'l_arm_ely', 'l_arm_elx', 'l_arm_wry', 'l_arm_wrx', 'l_arm_wry2']
-        r = ['back_bkz', 'back_bky', 'back_bkx', 'r_arm_shz', 'r_arm_shx', 'r_arm_ely', 'r_arm_elx', 'r_arm_wry', 'r_arm_wrx', 'r_arm_wry2']
-        self.rchain = KinematicChain(node, 'pelvis', 'r_hand', r)
-        self.lchain = KinematicChain(node, 'pelvis', 'l_hand', l)
-
-        # initialize one kinematic chain list two feet two hands
-        # initialize starting position of qoints and pelvis
-        # initialize final position of pelvis and joints?
-        self.Tpelvis = None
-        self.q0 = np.array([0.0 for i in range(len(l))]).reshape((-1,1))
-        self.q = self.q0
         # initialize atlas dimensions
         self.shoulderHeight = 10
         self.upperArmLength = 10
         self.lowerArmLength = 10
+        self.legLength = 0.941
+        self.footLength = 0.17
+
+        # initialize pushup data
+        self.pushupDuration = 8
+
+        # initialize kinematic chain
+        l = ['back_bkz', 'back_bky', 'back_bkx', 'l_arm_shz', 'l_arm_shx', 'l_arm_ely', 'l_arm_elx', 'l_arm_wry', 'l_arm_wrx', 'l_arm_wry2']
+        r = ['back_bkz', 'back_bky', 'back_bkx', 'r_arm_shz', 'r_arm_shx', 'r_arm_ely', 'r_arm_elx', 'r_arm_wry', 'r_arm_wrx', 'r_arm_wry2']
+        self.rchain = KinematicChain(node, 'pelvis', 'r_hand', r)
+        self.lchain = KinematicChain(node, 'pelvis', 'l_hand', l)
+        self.pelvisStartAngle = np.radians(60)
+        self.pelvisEndAngle = np.radians(80)
+
+        # initialize one kinematic chain list two feet two hands
+        # initialize starting position of qoints and pelvis
+        # initialize final position of pelvis and joints?
+        Rpelvis, ppelvis = self.getPelvisData(0)
+        self.Tpelvis = T_from_Rp(Rpelvis, ppelvis)
+        self.q0 = np.array([0.0 for i in range(len(l))]).reshape((-1,1))
+        self.q = self.q0
+
 
         self.lchain.setjoints(self.q)
         self.rchain.setjoints(self.q)
-
-
-        #raise NotImplementedError
 
 
     # Declare the joint names.
@@ -97,9 +89,9 @@ class Trajectory():
         # xdesired is constant to world frame and changes to pelvis frame
         # using this compute xddot
         # then do inverse kinematics for q
-        q = self.q
+        q =  np.array([0.0 for i in range(len(self.jointnames()))]).reshape((-1,1))
+
         return (q.flatten().tolist(), q.flatten().tolist())
-        raise NotImplementedError
 
         # Grab the last joint value and task error.
         q   = self.q
@@ -126,16 +118,27 @@ class Trajectory():
 
     def evaluatePelvis(self, t, dt):
         # update to find pxyz and rotation at given time
-        t = t%8
-        a = get_theta(t)
-        ppelvis = xyz_pelvis_from_theta(a) # 0.95 should be height of pelvis, 0.1 should be height of foot
-        Rpelvis = Roty(a)
+        pushupTime = t % self.pushupDuration
+        Rpelvis, ppelvis = self.getPelvisData(pushupTime)
         Tpelvis = T_from_Rp(Rpelvis, ppelvis)
         self.Tpelvis = Tpelvis
         return Tpelvis
 
-    def pelvisRotationAngle(self, t, dt):
-        return np.sin(t)
+    def getPelvisData(self, t):
+        # compute pelvis theta
+        halfTime = self.pushupDuration / 2
+        if t < halfTime:
+            a, adot = spline(t, halfTime, self.pelvisStartAngle, self.pelvisEndAngle)
+        else:
+            t1 = t - 4
+            a, adot = spline(t1, halfTime, self.pelvisStartAngle, self.pelvisEndAngle)
+            
+            a = self.pelvisStartAngle + self.pelvisEndAngle - a
+        Rpelvis = Roty(a)
+
+        # compute pelvis pxyz
+        ppelvis = pxyz(np.sin(a)*self.legLength, 0.0, np.cos(a)*self.legLength + self.footLength)
+        return Rpelvis, ppelvis
 
 #
 #  Main Code
