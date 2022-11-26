@@ -43,13 +43,14 @@ class Trajectory():
         self.pushupDuration = 8
 
         # initialize kinematic chain - neck joint currently not in any chain
-        larm = ['back_bkz', 'back_bky', 'back_bkx', 'l_arm_shz', 'l_arm_shx', 'l_arm_ely', 'l_arm_elx', 'l_arm_wry', 'l_arm_wrx', 'l_arm_wry2']
-        rarm = ['back_bkz', 'back_bky', 'back_bkx', 'r_arm_shz', 'r_arm_shx', 'r_arm_ely', 'r_arm_elx', 'r_arm_wry', 'r_arm_wrx', 'r_arm_wry2']
+        self.larmjoints = ['back_bkz', 'back_bky', 'back_bkx', 'l_arm_shz', 'l_arm_shx', 'l_arm_ely', 'l_arm_elx', 'l_arm_wry', 'l_arm_wrx', 'l_arm_wry2']
+        self.rarmjoints = ['back_bkz', 'back_bky', 'back_bkx', 'r_arm_shz', 'r_arm_shx', 'r_arm_ely', 'r_arm_elx', 'r_arm_wry', 'r_arm_wrx', 'r_arm_wry2']
+        self.nonContributingJoints = ['back_bkz', 'back_bky', 'back_bkx']
         # lleg = ['l_leg_hpz', 'l_leg_hpx', 'l_leg_hpy', 'l_leg_kny', 'l_leg_aky', 'l_leg_akx']
         # rleg = ['r_leg_hpz', 'r_leg_hpx', 'r_leg_hpy', 'r_leg_kny', 'r_leg_aky', 'r_leg_akx']
 
-        self.rarmchain = KinematicChain(node, 'pelvis', 'r_hand', rarm)
-        self.larmchain = KinematicChain(node, 'pelvis', 'l_hand', larm)
+        self.rarmchain = KinematicChain(node, 'pelvis', 'r_hand', self.rarmjoints)
+        self.larmchain = KinematicChain(node, 'pelvis', 'l_hand', self.larmjoints)
         # self.rlegchain = KinematicChain(node, 'pelvis', 'r_foot', rleg)
         # self.llegchain = KinematicChain(node, 'pelvis', 'l_foot', lleg)
 
@@ -64,16 +65,19 @@ class Trajectory():
         # initial x (6x1 - 3x1 for left hand, 3x1 for right hand) with respect to world frame
         rHandx = pxyz(1.32155,-0.2256,0.115332)
         lHandx = pxyz(1.32155,0.2256,0.115332)
-        self.xd = np.vstack((rHandx, lHandx))
+        self.xd = np.vstack((lHandx)) #, rHandx))
         # initial joints 30x1 for starting pushup position relative to ???
         self.q0 = np.array([0,0,0,0,0,-0.5,-np.pi/2,0,0,0,0,0,0,0,0,0,0,0,0,0.5,np.pi/2,0,0,0,0,0,0,0,0,0]).reshape((-1,1))
 
         # change to use q0 once q0 is known to be correct
-        self.q = np.array([0.0 for i in range(len(larm))]).reshape((-1,1))
+        self.q = self.q0
+        self.err = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]).reshape((-1,1))
 
         # set joints
-        self.larmchain.setjoints(np.array([0.0 for i in range(len(larm))]).reshape((-1,1)))
-        self.rarmchain.setjoints(np.array([0.0 for i in range(len(rarm))]).reshape((-1,1)))
+        self.larmchain.setjoints(self.getSpecificJoints(self.q, self.larmjoints).reshape((-1,1)))
+        # self.rarmchain.setjoints(self.getSpecificJoints(self.q, self.rarmjoints).reshape((-1,1)))
+
+        self.lmbda = 40
         # self.llegchain.setjoints(np.array([0.0 for i in range(len(lleg))]).reshape((-1,1)))
         # self.rlegchain.setjoints(np.array([0.0 for i in range(len(rleg))]).reshape((-1,1)))
 
@@ -99,10 +103,10 @@ class Trajectory():
         for jointLabel in desiredJointLabels:
             idx = self.jointnames().index(jointLabel)
             joints.append(allJoints[idx])
-        return joints
+        return np.array(joints)
 
     # input should be list of (Jacobian, related_joint_labels) - returns single Jacobian of size nx30 where n is the number of tasks across all jaobians
-    def stackJacobians(self, jacobians):
+    def stackJacobians(self, jacobians, zeroContributionJoints = []):
         totalJacobians = []
         for jacobian, jointLabels in jacobians:
             J = np.zeros((len(jacobian), len(self.jointnames())))
@@ -113,7 +117,12 @@ class Trajectory():
                 idx = self.jointnames().index(jointLabel)
                 J[:, idx] = col
             totalJacobians.append(J)
-        return np.vstack(totalJacobians)
+        J = np.vstack(totalJacobians)
+
+        for jointLabel in zeroContributionJoints:
+            idx = self.jointnames().index(jointLabel)
+            J[:,idx] = np.zeros(len(J))
+        return J
 
     # method to take multiple lists of joint values of form (joint_values, related_joint_labels) and return single 30x1 list of joint values
     def combineIntoAllJoints(self, jointLists, defaultValue = [0]):
@@ -130,6 +139,7 @@ class Trajectory():
                     break
             if not found:
                 joints.append(defaultValue)
+        return np.array(joints)
 
 
     # Evaluate at the given time.  This was last called (dt) ago.
@@ -140,15 +150,33 @@ class Trajectory():
         # xdesired is constant to world frame and changes to pelvis frame
         # using this compute xddot
         # then do inverse kinematics for q
-        q =  self.q0
-        return (q.flatten().tolist(), q.flatten().tolist())
 
         # Grab the last joint value and task error.
         q   = self.q
-        err = self.err
 
         # Compute the inverse kinematics
-        J    = np.vstack((self.chain.Jv(),self.chain.Jw()))
+        J = self.stackJacobians([(self.larmchain.Jv(), self.larmjoints)], self.nonContributingJoints) #, (self.rarmchain.Jv(), self.rarmjoints)])
+        print(J)
+        currentLarmTip = p_from_T(self.Tpelvis @ self.larmchain.Ttip())
+        #currentRarmTip = p_from_T(self.Tpelvis @ self.rarmchain.Ttip())
+
+        currentLarmTip = self.larmchain.ptip() # currentLarmTip is in pelvis frame
+        xd = self.xd - p_from_T(self.Tpelvis) # xd should be in pelvis frame??
+
+        print(xd, "\n\n\n\n\n\n")
+
+        x = currentLarmTip  #np.vstack((currentLarmTip, currentRarmTip))
+        xddot = (x - xd) * self.lmbda * dt # might have to use self.xd which is in world frame
+
+        qdot = np.linalg.pinv(J) @ xddot
+        q = q + dt * qdot
+        self.q = q 
+
+        self.larmchain.setjoints(self.getSpecificJoints(self.q, self.larmjoints).reshape((-1,1)))
+        #self.rarmchain.setjoints(self.getSpecificJoints(self.q, self.rarmjoints).reshape((-1,1)))
+
+        return (q.flatten().tolist(), qdot.flatten().tolist())
+
         xdot = np.vstack((vd, wd))
         qdot = np.linalg.inv(J) @ (xdot + self.lam * err)
 
