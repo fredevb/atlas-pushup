@@ -81,13 +81,13 @@ class Trajectory():
     # Declare the joint names.
     def jointnames(self):
         return [
-            'back_bkx', 'back_bky', 'back_bkz', 
-            'l_arm_elx', 'l_arm_ely', 'l_arm_shx', 
+            'back_bkx', 'back_bky', 'back_bkz',
+            'l_arm_elx', 'l_arm_ely', 'l_arm_shx',
             'l_arm_shz', 'l_arm_wrx', 'l_arm_wry',
-            'l_arm_wry2', 'l_leg_akx', 'l_leg_aky', 
+            'l_arm_wry2', 'l_leg_akx', 'l_leg_aky',
             'l_leg_hpx', 'l_leg_hpy', 'l_leg_hpz',
-            'l_leg_kny', 'neck_ry', 'r_arm_elx', 
-            'r_arm_ely', 'r_arm_shx', 'r_arm_shz', 
+            'l_leg_kny', 'neck_ry', 'r_arm_elx',
+            'r_arm_ely', 'r_arm_shx', 'r_arm_shz',
             'r_arm_wrx', 'r_arm_wry', 'r_arm_wry2',
             'r_leg_akx', 'r_leg_aky', 'r_leg_hpx',
             'r_leg_hpy', 'r_leg_hpz', 'r_leg_kny',
@@ -95,15 +95,42 @@ class Trajectory():
 
     # extracts joint values of the joints in desiredJointLabels from a 30x1 list of all joints
     def getSpecificJoints(self, allJoints, desiredJointLabels):
-        raise NotImplementedError
+        joints = []
+        for jointLabel in desiredJointLabels:
+            idx = self.jointnames().index(jointLabel)
+            joints.append(allJoints[idx])
+        return joints
 
     # input should be list of (Jacobian, related_joint_labels) - returns single Jacobian of size nx30 where n is the number of tasks across all jaobians
     def stackJacobians(jacobians):
-        raise NotImplementedError
+        totalJacobians = []
+        for jacobian, jointLabels in jacobians:
+            J = np.zeros((len(jacobian), len(self.jointnames())))
+            jacobian = np.array(jacobian)
+            for i in range(len(jointLabels)):
+                jointLabel = jointLabels[i]
+                col = jacobian[:,i]
+                idx = self.jointnames().index(jointLabel)
+                J[:, idx] = col
+            totalJacobians.append(J)
+        return np.vstack(totalJacobians)
 
     # method to take multiple lists of joint values of form (joint_values, related_joint_labels) and return single 30x1 list of joint values
-    def combineIntoAllJoints(jointLists):
-        raise NotImplementedError
+    def combineIntoAllJoints(jointLists, defaultValue = [0]):
+        joints  = []
+        for jointLabel in self.jointnames():
+            found = False
+            for values, jointLabels in jointLists:
+                if jointLabel in jointLabels:
+                    idx = jointLabels.index(jointLabel)
+                    value = values[idx]
+                    joint.append(value)
+                    found = True
+                if found:
+                    break
+            if not found:
+                joints.append(defaultValue)
+
 
     # Evaluate at the given time.  This was last called (dt) ago.
     def evaluateJoints(self, t, dt):
@@ -155,7 +182,7 @@ class Trajectory():
         else:
             t1 = t - 4
             a, adot = spline(t1, halfTime, self.pelvisStartAngle, self.pelvisEndAngle)
-            
+
             a = self.pelvisStartAngle + self.pelvisEndAngle - a
         Rpelvis = Roty(a)
 
