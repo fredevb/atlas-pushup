@@ -102,7 +102,7 @@ class Trajectory():
         return joints
 
     # input should be list of (Jacobian, related_joint_labels) - returns single Jacobian of size nx30 where n is the number of tasks across all jaobians
-    def stackJacobians(jacobians):
+    def stackJacobians(self, jacobians):
         totalJacobians = []
         for jacobian, jointLabels in jacobians:
             J = np.zeros((len(jacobian), len(self.jointnames())))
@@ -116,7 +116,7 @@ class Trajectory():
         return np.vstack(totalJacobians)
 
     # method to take multiple lists of joint values of form (joint_values, related_joint_labels) and return single 30x1 list of joint values
-    def combineIntoAllJoints(jointLists, defaultValue = [0]):
+    def combineIntoAllJoints(self, jointLists, defaultValue = [0]):
         joints  = []
         for jointLabel in self.jointnames():
             found = False
@@ -124,7 +124,7 @@ class Trajectory():
                 if jointLabel in jointLabels:
                     idx = jointLabels.index(jointLabel)
                     value = values[idx]
-                    joint.append(value)
+                    joints.append(value)
                     found = True
                 if found:
                     break
