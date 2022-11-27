@@ -95,8 +95,9 @@ class Trajectory():
         width = 1
         self.rHandx = pxyz(1.32155,-0.2256*width,0.115332)
         self.lHandx = pxyz(1.32155,0.2256*width,0.115332)
-        self.wxd = np.vstack((self.lHandx)) #, rHandx))
-        # initial joints 30x1 for starting pushup position relative to ???
+        self.wxd = np.vstack((self.lHandx))
+
+        # initial joints 30x1 for starting pushup
         self.q0 = np.array([0,0,0,0,0,-0.5,-np.pi/2,0,0,0,0,0,0,0,0,0,0,0,0,0.5,np.pi/2,0,0,0,0,0,0,0,0,0]).reshape((-1,1))
 
         # change to use q0 once q0 is known to be correct
