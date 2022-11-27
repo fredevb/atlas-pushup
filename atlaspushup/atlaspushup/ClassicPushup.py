@@ -84,7 +84,7 @@ class Trajectory():
         # self.llegchain = KinematicChain(node, 'pelvis', 'l_foot', lleg)
 
         # initialize pelvis data
-        self.pelvisStartAngle = np.radians(57.2)
+        self.pelvisStartAngle = np.radians(60)#np.radians(57.2)
         self.pelvisEndAngle = np.radians(80)
         Rpelvis, ppelvis = self.getPelvisData(0)
         self.Tpelvis = T_from_Rp(Rpelvis, ppelvis)
@@ -182,7 +182,8 @@ class Trajectory():
 
         # compute desired relative to pelvis
         xd = np.linalg.inv(R_from_T(self.Tpelvis)) @ (wxd - p_from_T(self.Tpelvis))
-        fixedRotation = Rotx(np.pi/2) if leftHand else Rotx(-np.pi/2)
+        fixedRotation = Rotx(-np.pi/2)@Roty(np.pi/2) if leftHand else Rotx(-np.pi/2)@Roty(np.pi/2)@Rotz(np.pi)
+        # Rotx(np.pi/2) -> Rotx(-np.pi/2)@Roty(np.pi/2)
         Rd = np.linalg.inv(R_from_T(self.Tpelvis)) @ fixedRotation
 
         # get current relative to pelvis
@@ -196,12 +197,12 @@ class Trajectory():
 
     # Evaluate at the given time. This was last called (dt) ago.
     def evaluateJoints(self, t, dt):
-        # Grab last qoint value
+        # Grab last qoint value Rotx(np.pi/2)
         q = self.q
 
         # Grab the desired xdot and jacobians
-        (lxddot, leftArmJacobian) = self.getInverseKinematicsData(self.larmchain, self.larmjoints, self.lHandx, False, dt)
-        (rxddot, rightArmJacobian) = self.getInverseKinematicsData(self.rarmchain, self.rarmjoints, self.rHandx, True, dt) #Rotx(-np.pi/2) @ Rotz(np.pi)
+        (lxddot, leftArmJacobian) = self.getInverseKinematicsData(self.larmchain, self.larmjoints, self.lHandx, True, dt)
+        (rxddot, rightArmJacobian) = self.getInverseKinematicsData(self.rarmchain, self.rarmjoints, self.rHandx, False, dt) #Rotx(-np.pi/2) @ Rotz(np.pi)
         J = np.vstack((leftArmJacobian, rightArmJacobian))
 
         # compute qdot
