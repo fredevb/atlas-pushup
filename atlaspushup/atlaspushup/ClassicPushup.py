@@ -172,66 +172,50 @@ class Trajectory():
         return np.array(joints)
 
 
-    def arm(self, chain, joints, wxd, dt):
+    def getInverseKinematicsData(self, chain, joints, wxd, leftHand, dt):
         q   = self.q
 
-        # Compute the inverse kinematics
-        Jv = self.stackJacobians([(chain.Jv(), joints)], self.nonContributingJoints) #, (self.rarmchain.Jv(), self.rarmjoints)])
+        # Get jacobian for chain
+        Jv = self.stackJacobians([(chain.Jv(), joints)], self.nonContributingJoints)
         Jw = self.stackJacobians([(chain.Jw(), joints)], self.nonContributingJoints)
         J = np.vstack((Jv, Jw))
 
-        xd = np.linalg.inv(R_from_T(self.Tpelvis)) @ (wxd - p_from_T(self.Tpelvis)) # xd should be in pelvis frame??
-        Rd = np.linalg.inv(R_from_T(self.Tpelvis)) @ (Rotx(-math.pi/2))
+        # compute desired relative to pelvis
+        xd = np.linalg.inv(R_from_T(self.Tpelvis)) @ (wxd - p_from_T(self.Tpelvis))
+        fixedRotation = Rotx(np.pi/2) if leftHand else Rotx(-np.pi/2)
+        Rd = np.linalg.inv(R_from_T(self.Tpelvis)) @ fixedRotation
 
-        x = p_from_T(chain.Ttip()) #np.vstack((currentLarmTip, currentRarmTip))
+        # get current relative to pelvis
+        x = p_from_T(chain.Ttip()) 
         R = R_from_T(chain.Ttip())
 
+        # compute xddot and return values
         xddot = np.vstack((ep(xd, x), eR(Rd, R))) * 1/dt
         return (xddot, J)
 
-        qdot = np.linalg.pinv(J) @ xddot
-        q = q + dt * qdot
-        return (q, qdot)
 
-    # Evaluate at the given time.  This was last called (dt) ago.
+    # Evaluate at the given time. This was last called (dt) ago.
     def evaluateJoints(self, t, dt):
-        # have pelvis trajectory as seperate method to evaluate so one method evaluateJoints, one evaluatePelvis
-        # compute desired x from pelvis and do intervse kinematics
+        # Grab last qoint value
+        q = self.q
 
-        # xdesired is constant to world frame and changes to pelvis frame
-        # using this compute xddot
-        # then do inverse kinematics for q
+        # Grab the desired xdot and jacobians
+        (lxddot, leftArmJacobian) = self.getInverseKinematicsData(self.larmchain, self.larmjoints, self.lHandx, False, dt)
+        (rxddot, rightArmJacobian) = self.getInverseKinematicsData(self.rarmchain, self.rarmjoints, self.rHandx, True, dt) #Rotx(-np.pi/2) @ Rotz(np.pi)
+        J = np.vstack((leftArmJacobian, rightArmJacobian))
 
-        # Grab the last joint value and task error.
-        (lxddot, lJ) = self.arm(self.larmchain, self.larmjoints, self.lHandx, dt)
-        (rxddot, rJ) = self.arm(self.rarmchain, self.rarmjoints, self.rHandx, dt)
-        J = np.vstack((lJ, rJ))
+        # compute qdot
         xddot = np.vstack((lxddot, rxddot))
         qdot = np.linalg.pinv(J) @ xddot
-        q = self.q
+
+        # integrate for q
         q = q + dt * qdot
         self.q = q
 
+        # update chain joint values
         self.larmchain.setjoints(self.getSpecificJoints(self.q, self.larmjoints).reshape((-1,1)))
         self.rarmchain.setjoints(self.getSpecificJoints(self.q, self.rarmjoints).reshape((-1,1)))
 
-        return (q.flatten().tolist(), qdot.flatten().tolist())
-
-        xdot = np.vstack((vd, wd))
-        qdot = np.linalg.inv(J) @ (xdot + self.lam * err)
-
-        # Integrate the joint position and update the kin chain data.
-        q = q + dt * qdot
-        self.chain.setjoints(q)
-
-        # Compute the resulting task error (to be used next cycle).
-        err  = np.vstack((ep(pd, self.chain.ptip()), eR(Rd, self.chain.Rtip())))
-
-        # Save the joint value and task error for the next cycle.
-        self.q   = q
-        self.err = err
-
-        # Return the position and velocity as python lists.
         return (q.flatten().tolist(), qdot.flatten().tolist())
 
     def evaluatePelvis(self, t, dt):
