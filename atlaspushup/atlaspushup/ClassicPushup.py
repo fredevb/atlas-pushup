@@ -16,17 +16,6 @@ import math
 from atlaspushup.GeneratorNode     import GeneratorNode, DemoNode
 from atlaspushup.KinematicChain    import KinematicChain
 from atlaspushup.TransformHelpers  import *
-#from Segments import Hold, Stay, GotoCubic, SplineCubic
-
-
-#class ArmTrajectory():
-#    def __init__(self, node, arm):
-#        if arm == 'left':
-#            self.joints = ['back_bkz', 'back_bky', 'back_bkx', 'l_arm_shz', 'l_arm_shx', 'l_arm_ely', 'l_arm_elx', 'l_arm_wry', 'l_arm_wrx', 'l_arm_wry2']
-#            self.wxd = pxyz(1.32155,-0.2256,0.115332)
-#        elif arm == 'right':
-#            self.joints = ['back_bkz', 'back_bky', 'back_bkx', 'r_arm_shz', 'r_arm_shx', 'r_arm_ely', 'r_arm_elx', 'r_arm_wry', 'r_arm_wrx', 'r_arm_wry2']
-#        KinematicChain(node, 'pelvis', 'l_hand', self.joints)
 
 #
 #   Spline Helper
@@ -37,24 +26,6 @@ def spline(t, T, p0, pf):
     p = p0 + (pf-p0) * (3*t**2/T**2 - 2*t**3/T**3)
     v =      (pf-p0) * (6*t   /T**2 - 6*t**2/T**3)
     return (p, v)
-
-#def JacwInv(J, gamma):
-#    Jt = np.transpose(J)
-#    return np.linalg.inv(Jt @ J + (gamma**2)*np.eye(3)) @ Jt
-
-#def JacstarInv(J, gamma):
-#    (U, s, Vt) = np.linalg.svd(J)
-#    diag = np.diag(s)
-#    diaginv = np.eye(3)
-#    for i in range(0,3):
-#        for j in range(0,3):
-#            si = diag[i][j]
-#            if abs(si) >= gamma:
-#                diaginv[i][j] = 1/si
-#            else:
-#                diaginv[i][j] = si/(gamma**2)
-#                
-#    return np.transpose(Vt)@diaginv@np.transpose(U)
 
 #
 #   Trajectory Class
@@ -74,7 +45,7 @@ class Trajectory():
         # initialize kinematic chain - neck joint currently not in any chain
         self.larmjoints = ['back_bkz', 'back_bky', 'back_bkx', 'l_arm_shz', 'l_arm_shx', 'l_arm_ely', 'l_arm_elx', 'l_arm_wry', 'l_arm_wrx', 'l_arm_wry2']
         self.rarmjoints = ['back_bkz', 'back_bky', 'back_bkx', 'r_arm_shz', 'r_arm_shx', 'r_arm_ely', 'r_arm_elx', 'r_arm_wry', 'r_arm_wrx', 'r_arm_wry2']
-        self.nonContributingJoints = ['back_bkz', 'back_bky', 'back_bkx']
+        self.nonContributingJoints = ['back_bkz', 'back_bky', 'back_bkx', 'r_arm_shz', 'l_arm_shz']
         # lleg = ['l_leg_hpz', 'l_leg_hpx', 'l_leg_hpy', 'l_leg_kny', 'l_leg_aky', 'l_leg_akx']
         # rleg = ['r_leg_hpz', 'r_leg_hpx', 'r_leg_hpy', 'r_leg_kny', 'r_leg_aky', 'r_leg_akx']
 
@@ -106,7 +77,7 @@ class Trajectory():
 
         # set joints
         self.larmchain.setjoints(self.getSpecificJoints(self.q, self.larmjoints).reshape((-1,1)))
-        # self.rarmchain.setjoints(self.getSpecificJoints(self.q, self.rarmjoints).reshape((-1,1)))
+        self.rarmchain.setjoints(self.getSpecificJoints(self.q, self.rarmjoints).reshape((-1,1)))
 
         self.lmbda = 40
         # self.llegchain.setjoints(np.array([0.0 for i in range(len(lleg))]).reshape((-1,1)))
@@ -174,7 +145,7 @@ class Trajectory():
 
 
     def getInverseKinematicsData(self, chain, joints, wxd, leftHand, dt):
-        q   = self.q
+        q  = self.q
 
         # Get jacobian for chain
         Jv = self.stackJacobians([(chain.Jv(), joints)], self.nonContributingJoints)
@@ -183,8 +154,9 @@ class Trajectory():
 
         # compute desired relative to pelvis
         xd = np.linalg.inv(R_from_T(self.Tpelvis)) @ (wxd - p_from_T(self.Tpelvis))
-        fixedRotation = Rotx(-np.pi/2)@Roty(np.pi/2) if leftHand else Rotx(-np.pi/2)@Roty(np.pi/2)@Rotz(np.pi)
-        # Rotx(np.pi/2) -> Rotx(-np.pi/2)@Roty(np.pi/2)
+        fixedRotation = Rotx(-np.pi/2) @ Roty(np.pi/2) if leftHand else Rotx(-np.pi/2) @ Roty(np.pi/4) @ Rotz(np.pi)
+        # leftHand Roty can be pi/2 for better motion
+
         Rd = np.linalg.inv(R_from_T(self.Tpelvis)) @ fixedRotation
 
         # get current relative to pelvis
@@ -203,17 +175,17 @@ class Trajectory():
 
         # Grab the desired xdot and jacobians
         (lxddot, leftArmJacobian) = self.getInverseKinematicsData(self.larmchain, self.larmjoints, self.lHandx, True, dt)
-        (rxddot, rightArmJacobian) = self.getInverseKinematicsData(self.rarmchain, self.rarmjoints, self.rHandx, False, dt) #Rotx(-np.pi/2) @ Rotz(np.pi)
+        (rxddot, rightArmJacobian) = self.getInverseKinematicsData(self.rarmchain, self.rarmjoints, self.rHandx, False, dt)
         J = np.vstack((leftArmJacobian, rightArmJacobian))
 
         # compute qdot
         xddot = np.vstack((lxddot, rxddot))
         qdot = np.linalg.pinv(J) @ xddot
-
+        
         # integrate for q
         q = q + dt * qdot
         self.q = q
-
+        print(q, "\n\n\n\n")
         # update chain joint values
         self.larmchain.setjoints(self.getSpecificJoints(self.q, self.larmjoints).reshape((-1,1)))
         self.rarmchain.setjoints(self.getSpecificJoints(self.q, self.rarmjoints).reshape((-1,1)))
