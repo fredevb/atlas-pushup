@@ -93,9 +93,9 @@ class Trajectory():
         # initialize qs and xs
         # initial x (6x1 - 3x1 for left hand, 3x1 for right hand) with respect to world frame
         width = 1
-        rHandx = pxyz(1.32155,-0.2256*width,0.115332)
-        lHandx = pxyz(1.32155,0.2256*width,0.115332)
-        self.wxd = np.vstack((lHandx)) #, rHandx))
+        self.rHandx = pxyz(1.32155,-0.2256*width,0.115332)
+        self.lHandx = pxyz(1.32155,0.2256*width,0.115332)
+        self.wxd = np.vstack((self.lHandx)) #, rHandx))
         # initial joints 30x1 for starting pushup position relative to ???
         self.q0 = np.array([0,0,0,0,0,-0.5,-np.pi/2,0,0,0,0,0,0,0,0,0,0,0,0,0.5,np.pi/2,0,0,0,0,0,0,0,0,0]).reshape((-1,1))
 
@@ -172,6 +172,27 @@ class Trajectory():
         return np.array(joints)
 
 
+    def arm(self, chain, joints, wxd, dt):
+        q   = self.q
+
+        # Compute the inverse kinematics
+        Jv = self.stackJacobians([(chain.Jv(), joints)], self.nonContributingJoints) #, (self.rarmchain.Jv(), self.rarmjoints)])
+        Jw = self.stackJacobians([(chain.Jw(), joints)], self.nonContributingJoints)
+        J = np.vstack((Jv, Jw))
+
+        xd = np.linalg.inv(R_from_T(self.Tpelvis)) @ (wxd - p_from_T(self.Tpelvis)) # xd should be in pelvis frame??
+        Rd = np.linalg.inv(R_from_T(self.Tpelvis)) @ (Rotx(-math.pi/2))
+
+        x = p_from_T(chain.Ttip()) #np.vstack((currentLarmTip, currentRarmTip))
+        R = R_from_T(chain.Ttip())
+
+        xddot = np.vstack((ep(xd, x), eR(Rd, R))) * 1/dt
+        return (xddot, J)
+
+        qdot = np.linalg.pinv(J) @ xddot
+        q = q + dt * qdot
+        return (q, qdot)
+
     # Evaluate at the given time.  This was last called (dt) ago.
     def evaluateJoints(self, t, dt):
         # have pelvis trajectory as seperate method to evaluate so one method evaluateJoints, one evaluatePelvis
@@ -182,27 +203,17 @@ class Trajectory():
         # then do inverse kinematics for q
 
         # Grab the last joint value and task error.
-        q   = self.q
-
-        # Compute the inverse kinematics
-        Jv = self.stackJacobians([(self.larmchain.Jv(), self.larmjoints)], self.nonContributingJoints) #, (self.rarmchain.Jv(), self.rarmjoints)])
-        Jw = self.stackJacobians([(self.larmchain.Jw(), self.larmjoints)], self.nonContributingJoints)
-        J = np.vstack((Jv, Jw))
-
-        xd = np.linalg.inv(R_from_T(self.Tpelvis)) @ (self.wxd - p_from_T(self.Tpelvis)) # xd should be in pelvis frame??
-        Rd = np.linalg.inv(R_from_T(self.Tpelvis)) @ (Rotx(-math.pi/2))
-
-        x = p_from_T(self.larmchain.Ttip()) #np.vstack((currentLarmTip, currentRarmTip))
-        R = R_from_T(self.larmchain.Ttip())
-
-        xddot = np.vstack((ep(xd, x), eR(Rd, R))) * 1/dt
-
+        (lxddot, lJ) = self.arm(self.larmchain, self.larmjoints, self.lHandx, dt)
+        (rxddot, rJ) = self.arm(self.rarmchain, self.rarmjoints, self.rHandx, dt)
+        J = np.vstack((lJ, rJ))
+        xddot = np.vstack((lxddot, rxddot))
         qdot = np.linalg.pinv(J) @ xddot
+        q = self.q
         q = q + dt * qdot
-        self.q = q 
+        self.q = q
 
         self.larmchain.setjoints(self.getSpecificJoints(self.q, self.larmjoints).reshape((-1,1)))
-        #self.rarmchain.setjoints(self.getSpecificJoints(self.q, self.rarmjoints).reshape((-1,1)))
+        self.rarmchain.setjoints(self.getSpecificJoints(self.q, self.rarmjoints).reshape((-1,1)))
 
         return (q.flatten().tolist(), qdot.flatten().tolist())
 
