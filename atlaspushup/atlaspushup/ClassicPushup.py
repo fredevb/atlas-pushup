@@ -16,7 +16,17 @@ import math
 from atlaspushup.GeneratorNode     import GeneratorNode, DemoNode
 from atlaspushup.KinematicChain    import KinematicChain
 from atlaspushup.TransformHelpers  import *
+#from Segments import Hold, Stay, GotoCubic, SplineCubic
 
+
+#class ArmTrajectory():
+#    def __init__(self, node, arm):
+#        if arm == 'left':
+#            self.joints = ['back_bkz', 'back_bky', 'back_bkx', 'l_arm_shz', 'l_arm_shx', 'l_arm_ely', 'l_arm_elx', 'l_arm_wry', 'l_arm_wrx', 'l_arm_wry2']
+#            self.wxd = pxyz(1.32155,-0.2256,0.115332)
+#        elif arm == 'right':
+#            self.joints = ['back_bkz', 'back_bky', 'back_bkx', 'r_arm_shz', 'r_arm_shx', 'r_arm_ely', 'r_arm_elx', 'r_arm_wry', 'r_arm_wrx', 'r_arm_wry2']
+#        KinematicChain(node, 'pelvis', 'l_hand', self.joints)
 
 #
 #   Spline Helper
@@ -28,6 +38,24 @@ def spline(t, T, p0, pf):
     v =      (pf-p0) * (6*t   /T**2 - 6*t**2/T**3)
     return (p, v)
 
+#def JacwInv(J, gamma):
+#    Jt = np.transpose(J)
+#    return np.linalg.inv(Jt @ J + (gamma**2)*np.eye(3)) @ Jt
+
+#def JacstarInv(J, gamma):
+#    (U, s, Vt) = np.linalg.svd(J)
+#    diag = np.diag(s)
+#    diaginv = np.eye(3)
+#    for i in range(0,3):
+#        for j in range(0,3):
+#            si = diag[i][j]
+#            if abs(si) >= gamma:
+#                diaginv[i][j] = 1/si
+#            else:
+#                diaginv[i][j] = si/(gamma**2)
+#                
+#    return np.transpose(Vt)@diaginv@np.transpose(U)
+
 #
 #   Trajectory Class
 #
@@ -35,6 +63,7 @@ def spline(t, T, p0, pf):
 class Trajectory():
     # Initialization.
     def __init__(self, node):
+
         # initialize atlas dimensions
         self.legLength = 0.941
         self.footLength = 0.17
@@ -65,7 +94,7 @@ class Trajectory():
         # initial x (6x1 - 3x1 for left hand, 3x1 for right hand) with respect to world frame
         rHandx = pxyz(1.32155,-0.2256,0.115332)
         lHandx = pxyz(1.32155,0.2256,0.115332)
-        self.xd = np.vstack((lHandx)) #, rHandx))
+        self.wxd = np.vstack((lHandx)) #, rHandx))
         # initial joints 30x1 for starting pushup position relative to ???
         self.q0 = np.array([0,0,0,0,0,-0.5,-np.pi/2,0,0,0,0,0,0,0,0,0,0,0,0,0.5,np.pi/2,0,0,0,0,0,0,0,0,0]).reshape((-1,1))
 
@@ -156,17 +185,11 @@ class Trajectory():
 
         # Compute the inverse kinematics
         J = self.stackJacobians([(self.larmchain.Jv(), self.larmjoints)], self.nonContributingJoints) #, (self.rarmchain.Jv(), self.rarmjoints)])
-        print(J)
-        currentLarmTip = p_from_T(self.Tpelvis @ self.larmchain.Ttip())
-        #currentRarmTip = p_from_T(self.Tpelvis @ self.rarmchain.Ttip())
 
-        currentLarmTip = self.larmchain.ptip() # currentLarmTip is in pelvis frame
-        xd = self.xd - p_from_T(self.Tpelvis) # xd should be in pelvis frame??
+        xd = np.linalg.inv(R_from_T(self.Tpelvis)) @ (self.wxd - p_from_T(self.Tpelvis)) # xd should be in pelvis frame??
 
-        print(xd, "\n\n\n\n\n\n")
-
-        x = currentLarmTip  #np.vstack((currentLarmTip, currentRarmTip))
-        xddot = (x - xd) * self.lmbda * dt # might have to use self.xd which is in world frame
+        x = p_from_T(self.larmchain.Ttip()) #np.vstack((currentLarmTip, currentRarmTip))
+        xddot = (xd - x)/dt # might have to use self.xd which is in world frame
 
         qdot = np.linalg.pinv(J) @ xddot
         q = q + dt * qdot
