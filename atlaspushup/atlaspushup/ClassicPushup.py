@@ -55,8 +55,8 @@ class Trajectory():
         # self.llegchain = KinematicChain(node, 'pelvis', 'l_foot', lleg)
 
         # initialize pelvis data
-        self.pelvisStartAngle = np.radians(60)#np.radians(57.2)
-        self.pelvisEndAngle = np.radians(80)
+        self.pelvisStartAngle = np.radians(60) #np.radians(57.2)
+        self.pelvisEndAngle = np.radians(75)
         Rpelvis, ppelvis = self.getPelvisData(0)
         self.Tpelvis = T_from_Rp(Rpelvis, ppelvis)
 
@@ -154,7 +154,8 @@ class Trajectory():
 
         # compute desired relative to pelvis
         xd = np.linalg.inv(R_from_T(self.Tpelvis)) @ (wxd - p_from_T(self.Tpelvis))
-        fixedRotation = Rotx(-np.pi/2) @ Roty(np.pi/2) if leftHand else Rotx(-np.pi/2) @ Roty(np.pi/4) @ Rotz(np.pi)
+        fixedRotation = Rotx(-np.pi/2) if leftHand else Rotx(-np.pi/2) @ Rotz(np.pi)
+        # without the lock on the shoulder joints set lefthand roty below and right hand to -np.pi/4
         # leftHand Roty can be pi/2 for better motion
 
         Rd = np.linalg.inv(R_from_T(self.Tpelvis)) @ fixedRotation
@@ -185,7 +186,7 @@ class Trajectory():
         # integrate for q
         q = q + dt * qdot
         self.q = q
-        print(q, "\n\n\n\n")
+
         # update chain joint values
         self.larmchain.setjoints(self.getSpecificJoints(self.q, self.larmjoints).reshape((-1,1)))
         self.rarmchain.setjoints(self.getSpecificJoints(self.q, self.rarmjoints).reshape((-1,1)))
