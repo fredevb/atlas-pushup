@@ -24,7 +24,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'ClassicPushup = atlaspushup.ClassicPushup:main'
+            'ClassicPushup = atlaspushup.ClassicPushup:main',
+            'HumanPushup = atlaspushup.HumanPushup:main',
         ],
     },
 )
