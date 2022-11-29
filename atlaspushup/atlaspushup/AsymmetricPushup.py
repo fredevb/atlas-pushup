@@ -13,7 +13,7 @@ from readline import add_history
 import rclpy
 import numpy as np
 import math
-from atlaspushup.GeneratorNode     import GeneratorNode, DemoNode
+from atlaspushup.GeneratorNode     import GeneratorNode
 from atlaspushup.KinematicChain    import KinematicChain
 from atlaspushup.TransformHelpers  import *
 
@@ -65,7 +65,7 @@ class Trajectory():
 
         # initialize pelvis data
         self.pelvisStartAngle = np.radians(57.2)
-        self.pelvisEndAngle = np.radians(75)
+        self.pelvisEndAngle = np.radians(65)
         Rpelvis, ppelvis = self.getPelvisData(0)
         self.Tpelvis = T_from_Rp(Rpelvis, ppelvis)
 
@@ -74,14 +74,14 @@ class Trajectory():
         # initial x (6x1 - 3x1 for left hand, 3x1 for right hand) with respect to world frame
         handWidth = 1
         self.rHandx = pxyz(1.32155,-0.2256*handWidth,0.115332)
-        self.lHandx = pxyz(1.32155,0.2256*handWidth,0.115332)
+        self.lHandx = pxyz(1.32155,0.2256*handWidth,0.315332)
 
         legWidth = 1
-        self.rFootx = pxyz(0.15,-0.1*legWidth,0.115332)
+        self.rFootx = pxyz(0.15,-0.1*legWidth,0.315332)
         self.lFootx = pxyz(0.15,0.1*legWidth,0.115332)
 
         # initial joints 30x1 for starting pushup
-        self.q0 = np.array([0,0,0,0,0,-0.5,-np.pi/2,0,0,0,0,0,0,0,0,0,0,0,0,0.5,np.pi/2,0,0,0,0,0,0,0,0,0]).reshape((-1,1))
+        self.q0 = np.array([0,0,0,-np.pi/2,-2.789,-1.22,-1.35,0.894,0.04,1.38,0,0.734,0,-0.16,0,0,0,0,2.84,0.5,np.pi/2,0.07,0.3,-np.pi/2,0,0.5,0,0.07,0,0]).reshape((-1,1))
 
         # change to use q0 once q0 is known to be correct
         self.q = self.q0
@@ -191,23 +191,12 @@ class Trajectory():
     def getSecondaryTaskGoals(self):
         return [
             ('l_arm_wrx', 0), ('r_arm_wrx', 0), 
-            ('l_arm_ely', 0), ('r_arm_ely', 0), 
-            ('l_arm_wry2', -0.01), ('r_arm_wry2', -0.01), # comment out to avoid the elbow turning motion but notice for pushup elbow is oriented different at top and bottom
+            #('l_arm_ely', 0), ('r_arm_ely', 0), 
+            #('l_arm_wry2', -0.01), ('r_arm_wry2', -0.01), # comment out to avoid the elbow turning motion but notice for pushup elbow is oriented different at top and bottom
             ('l_arm_elx', np.pi/2), ('r_arm_elx', -np.pi/2), 
             ('l_arm_shx', -np.pi/6), ('r_arm_shx', np.pi/6),
-            ('l_arm_shz', np.pi/12), ('r_arm_shz', -np.pi/12) # comment out for elbows to not go as outwards during motion
+            #('l_arm_shz', np.pi/12), ('r_arm_shz', -np.pi/12) # comment out for elbows to not go as outwards during motion
         ]
-
-        """
-            ('l_arm_wrx', 0), ('r_arm_wrx', 0), 
-            ('l_arm_elx', 1.5), ('r_arm_elx', 1.5), 
-            ('l_arm_ely', 1.5), ('r_arm_ely', 1.5), 
-            ('l_arm_wry2', -0.01), ('r_arm_wry2', -0.01), # comment out to avoid the elbow turning motion but notice for pushup elbow is oriented different at top and bottom
-            ('l_arm_elx', np.pi/2), ('r_arm_elx', -np.pi/2), 
-            #('l_arm_shx', -0.5), ('r_arm_shx', 0.5),
-            ('l_arm_shz', -1), ('r_arm_shz', 1) # comment out for elbows to not go as outwards during motion
-        
-        """
 
     # Evaluate at the given time. This was last called (dt) ago.
     def evaluateJoints(self, t, dt):

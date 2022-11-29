@@ -13,7 +13,7 @@ setup(
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + '/launch', glob('launch/*')),
         ('share/' + package_name + '/rviz',   glob('rviz/*')),
-
+        ('share/' + package_name + '/urdf',   glob('urdf/*')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -26,6 +26,7 @@ setup(
         'console_scripts': [
             'ClassicPushup = atlaspushup.ClassicPushup:main',
             'HumanPushup = atlaspushup.HumanPushup:main',
+            'AsymmetricPushup = atlaspushup.AsymmetricPushup:main'
         ],
     },
 )
