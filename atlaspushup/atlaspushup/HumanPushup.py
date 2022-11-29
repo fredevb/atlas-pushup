@@ -27,6 +27,12 @@ def spline(t, T, p0, pf):
     v =      (pf-p0) * (6*t   /T**2 - 6*t**2/T**3)
     return (p, v)
 
+# does not prevent feet from sliding...
+def line(t, T, p0, pf):
+    p = p0 + (t * (pf - p0) / T)
+    v = (pf - p0) / T
+    return (p, v)
+
 #
 #   Trajectory Class
 #
@@ -49,7 +55,7 @@ class Trajectory():
         self.rlegjoints = ['r_leg_hpz', 'r_leg_hpx', 'r_leg_hpy', 'r_leg_kny', 'r_leg_aky', 'r_leg_akx']
 
         # fixed joints at 0
-        self.armNonContributingJoints = ['back_bkz', 'back_bky', 'back_bkx', 'r_arm_shz', 'l_arm_shz']
+        self.armNonContributingJoints = ['back_bkz', 'back_bky', 'back_bkx']
         self.legNonContributingJoints = ['l_leg_hpz', 'l_leg_hpx', 'l_leg_kny', 'r_leg_hpz', 'r_leg_hpx', 'r_leg_kny']
 
         self.rarmchain = KinematicChain(node, 'pelvis', 'r_hand', self.rarmjoints)
@@ -58,7 +64,7 @@ class Trajectory():
         self.llegchain = KinematicChain(node, 'pelvis', 'l_foot', self.llegjoints)
 
         # initialize pelvis data
-        self.pelvisStartAngle = np.radians(60) #np.radians(57.2)
+        self.pelvisStartAngle = np.radians(57.2) #np.radians(57.2)
         self.pelvisEndAngle = np.radians(75)
         Rpelvis, ppelvis = self.getPelvisData(0)
         self.Tpelvis = T_from_Rp(Rpelvis, ppelvis)
@@ -79,7 +85,6 @@ class Trajectory():
 
         # change to use q0 once q0 is known to be correct
         self.q = self.q0
-        self.err = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]).reshape((-1,1))
 
         # set joints
         self.larmchain.setjoints(self.getSpecificJoints(self.q, self.larmjoints).reshape((-1,1)))
@@ -174,6 +179,24 @@ class Trajectory():
         xddot = np.vstack((ep(xd, x), eR(Rd, R))) * 1/dt
         return (xddot, J)
 
+    def limitJointVelocities(self, qdot, limit = 2):
+        for i in range(len(qdot)):
+            if abs(qdot[i][0]) > limit:
+                qdot[i][0] = limit if qdot[i][0] > limit else -limit
+        return qdot
+
+    def inverse(self, J, weight = 0.005):
+        return np.linalg.inv(J.T @ J + weight**2 * np.eye(len(J.T))) @ J.T
+
+    def getSecondaryTaskGoals(self):
+        return [
+            ('l_arm_wrx', 0), ('r_arm_wrx', 0), 
+            ('l_arm_ely', 0), ('r_arm_ely', 0), 
+            ('l_arm_wry2', -0.01), ('r_arm_wry2', -0.01), # comment out to avoid the elbow turning motion but notice for pushup elbow is oriented different at top and bottom
+            ('l_arm_elx', np.pi/2), ('r_arm_elx', -np.pi/2), 
+            ('l_arm_shx', -np.pi/6), ('r_arm_shx', np.pi/6),
+            ('l_arm_shz', 0.1), ('r_arm_shz', -0.1) # comment out for elbows to not go as outwards during motion
+        ]
 
     # Evaluate at the given time. This was last called (dt) ago.
     def evaluateJoints(self, t, dt):
@@ -192,12 +215,27 @@ class Trajectory():
         xddot = np.vstack((LAxddot, RAxddot, LLxddot, RLxddot))
 
         #compute qdot
-        qdot = np.linalg.pinv(J) @ xddot
+        qdotprimary = self.limitJointVelocities(self.inverse(J) @ xddot, 2)
+
+        # establish secondary task
+        qdotsecondary = np.array([[qd[0]] for qd in qdotprimary]).reshape((-1,1))
+        secondaryTaskJoints = self.getSecondaryTaskGoals()
+        for jointLabel, value in secondaryTaskJoints:
+            idx = self.jointnames().index(jointLabel)
+            qdotsecondary[idx][0] = (value - qdotprimary[idx][0]) * 1/dt
+        qdotsecondary = self.limitJointVelocities(qdotsecondary, 2)
+        nullspace = np.eye(len(J.T)) - self.inverse(J) @ J
+        qdot = qdotprimary + nullspace @ qdotsecondary
         
+        qdot = self.limitJointVelocities(qdot, 2)
+
+        # left arm shx must be negative, right arm shx must be positive
         # integrate for q
         q = q + dt * qdot
         self.q = q
-
+        for j in q:
+            if abs(j[0]) > np.pi:
+                print("error") 
         # update chain joint values
         self.larmchain.setjoints(self.getSpecificJoints(self.q, self.larmjoints).reshape((-1,1)))
         self.rarmchain.setjoints(self.getSpecificJoints(self.q, self.rarmjoints).reshape((-1,1)))

@@ -69,9 +69,9 @@ def generate_launch_description():
 
     # Configure a node for the pirouette demo.
     node_pushup = Node(
-        name       = 'ClassicPushup',
+        name       = 'HumanPushup',
         package    = 'atlaspushup',
-        executable = 'ClassicPushup',
+        executable = 'HumanPushup',
         output     = 'screen',
         on_exit    = Shutdown())
 
