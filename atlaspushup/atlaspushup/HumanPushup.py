@@ -64,7 +64,7 @@ class Trajectory():
         self.llegchain = KinematicChain(node, 'pelvis', 'l_foot', self.llegjoints)
 
         # initialize pelvis data
-        self.pelvisStartAngle = np.radians(57.2)
+        self.pelvisStartAngle = np.radians(58.2)
         self.pelvisEndAngle = np.radians(75)
         Rpelvis, ppelvis = self.getPelvisData(0)
         self.Tpelvis = T_from_Rp(Rpelvis, ppelvis)
@@ -77,11 +77,42 @@ class Trajectory():
         self.lHandx = pxyz(1.32155,0.2256*handWidth,0.115332)
 
         legWidth = 1
-        self.rFootx = pxyz(0.15,-0.1*legWidth,0.115332)
-        self.lFootx = pxyz(0.15,0.1*legWidth,0.115332)
+        self.rFootx = pxyz(0.15,-0.1*legWidth,self.footLength)
+        self.lFootx = pxyz(0.15,0.1*legWidth,self.footLength)
 
         # initial joints 30x1 for starting pushup
-        self.q0 = np.array([0,0,0,0,0,-0.5,-np.pi/2,0,0,0,0,0,0,0,0,0,0,0,0,0.5,np.pi/2,0,0,0,0,0,0,0,0,0]).reshape((-1,1))
+        self.q0 = np.array( [[ 0.        ]
+            ,[ 0.        ]
+            ,[ 0.        ]
+            ,[-0.46175475]
+            ,[-1.57785209]
+            ,[-0.5095605 ]
+            ,[-1.35355532]
+            ,[ 0.28318867]
+            ,[-0.20350509]
+            ,[ 0.30804894]
+            ,[ 0.        ]
+            ,[ 0.71469534]
+            ,[ 0.        ]
+            ,[-0.15968613]
+            ,[ 0.        ]
+            ,[ 0.        ]
+            ,[ 0.        ]
+            ,[ 0.46220892]
+            ,[-1.56647426]
+            ,[ 0.50693399]
+            ,[ 1.35335046]
+            ,[-0.28291931]
+            ,[-0.20556648]
+            ,[ 3.44005524]
+            ,[ 0.        ]
+            ,[ 0.71469534]
+            ,[ 0.        ]
+            ,[-0.15968613]
+            ,[ 0.        ]
+            ,[ 0.        ]])
+        
+
 
         # change to use q0 once q0 is known to be correct
         self.q = self.q0
@@ -181,22 +212,33 @@ class Trajectory():
 
     def limitJointVelocities(self, qdot, limit = 2):
         for i in range(len(qdot)):
-            if abs(qdot[i][0]) > limit:
+            if np.abs(qdot[i][0]) > limit:
                 qdot[i][0] = limit if qdot[i][0] > limit else -limit
         return qdot
 
     def inverse(self, J, weight = 0.005):
         return np.linalg.inv(J.T @ J + weight**2 * np.eye(len(J.T))) @ J.T
 
-    def getSecondaryTaskGoals(self):
+    def  getSecondaryTaskGoals(self):
         return [
+
+            ('l_arm_shx', -np.pi/3), ('r_arm_shx', np.pi/3), # flaring out
+            ('l_arm_ely', -np.pi/2), ('r_arm_ely', -np.pi/2),
+            
+
+        
+        
+        ]
+        #  # elbows bend
+
+        """    
             ('l_arm_wrx', 0), ('r_arm_wrx', 0), 
             ('l_arm_ely', 0), ('r_arm_ely', 0), 
             ('l_arm_wry2', -0.01), ('r_arm_wry2', -0.01), # comment out to avoid the elbow turning motion but notice for pushup elbow is oriented different at top and bottom
             ('l_arm_elx', np.pi/2), ('r_arm_elx', -np.pi/2), 
             ('l_arm_shx', -np.pi/6), ('r_arm_shx', np.pi/6),
             ('l_arm_shz', np.pi/12), ('r_arm_shz', -np.pi/12) # comment out for elbows to not go as outwards during motion
-        ]
+        """
 
         """
             ('l_arm_wrx', 0), ('r_arm_wrx', 0), 
@@ -229,14 +271,16 @@ class Trajectory():
         qdotprimary = self.limitJointVelocities(self.inverse(J) @ xddot, 2)
 
         # establish secondary task
-        qdotsecondary = np.array([[qd[0]] for qd in qdotprimary]).reshape((-1,1))
+        qdotsecondary = np.zeros((30,1))
         secondaryTaskJoints = self.getSecondaryTaskGoals()
         for jointLabel, value in secondaryTaskJoints:
             idx = self.jointnames().index(jointLabel)
-            qdotsecondary[idx][0] = (value - qdotprimary[idx][0]) * 1/dt
+            #qdotsecondary[idx][0] = (value - qdotprimary[idx][0]) * 1/dt
+            qdotsecondary[idx][0] = (value - q[idx][0]) * 1000
         qdotsecondary = self.limitJointVelocities(qdotsecondary, 2)
         nullspace = np.eye(len(J.T)) - self.inverse(J) @ J
         qdot = qdotprimary + nullspace @ qdotsecondary
+
         
         qdot = self.limitJointVelocities(qdot, 2)
 
@@ -274,10 +318,12 @@ class Trajectory():
             a, adot = spline(t1, halfTime, self.pelvisStartAngle, self.pelvisEndAngle)
 
             a = self.pelvisStartAngle + self.pelvisEndAngle - a
+
+        #a = np.radians(68)
         Rpelvis = Roty(a)
 
         # compute pelvis pxyz
-        ppelvis = pxyz(np.sin(a)*self.legLength, 0.0, np.cos(a)*self.legLength + self.footLength)
+        ppelvis = pxyz(np.sin(a)*(self.legLength) , 0.0, np.cos(a)* self.legLength + self.footLength)
         return Rpelvis, ppelvis
 
 #
