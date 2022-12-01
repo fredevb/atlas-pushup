@@ -27,7 +27,8 @@ setup(
             'ClassicPushup = atlaspushup.ClassicPushup:main',
             'HumanPushup = atlaspushup.HumanPushup:main',
             'AsymmetricPushup = atlaspushup.AsymmetricPushup:main',
-            'NoslidePushup = atlaspushup.NoslidePushup:main'
+            'NoslidePushup = atlaspushup.NoslidePushup:main',
+            'asymmetricpushupstand = atlaspushup.asymmetricpushupstand:main',
         ],
     },
 )

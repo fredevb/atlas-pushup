@@ -35,7 +35,6 @@ def generate_launch_description():
     rvizcfg = os.path.join(pkgdir('atlaspushup'), 'rviz/viewurdf.rviz')
     # Locate/load the robot's URDF file (XML).
     urdf = os.path.join(pkgdir('atlas_description'), 'urdf/atlas_v5.urdf')
-    # urdf = os.path.join(pkgdir('atlaspushup'), 'urdf/atlas_cube.urdf')
     with open(urdf, 'r') as file:
         robot_description = file.read()
 
@@ -78,9 +77,9 @@ def generate_launch_description():
         on_exit    = Shutdown())
 
     node_demo = Node(
-        name       = 'balldemo',
-        package    = 'iodemos',
-        executable = 'balldemo',
+        name       = 'asymmetricpushupstand',
+        package    = 'atlaspushup',
+        executable = 'asymmetricpushupstand',
         output     = 'screen',
         on_exit    = Shutdown())
 
