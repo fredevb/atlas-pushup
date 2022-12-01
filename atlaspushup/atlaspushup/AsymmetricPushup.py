@@ -43,7 +43,7 @@ class Trajectory():
 
         # initialize atlas dimensions
         self.legLength = 0.941
-        self.footLength = 0.17
+        self.footLength = 0.195
 
         # initialize pushup data
         self.pushupDuration = 8
@@ -64,7 +64,7 @@ class Trajectory():
         self.llegchain = KinematicChain(node, 'pelvis', 'l_foot', self.llegjoints)
 
         # initialize pelvis data
-        self.pelvisStartAngle = np.radians(57.2)
+        self.pelvisStartAngle = np.radians(58.8)
         self.pelvisEndAngle = np.radians(65)
         Rpelvis, ppelvis = self.getPelvisData(0)
         self.Tpelvis = T_from_Rp(Rpelvis, ppelvis)
@@ -78,10 +78,15 @@ class Trajectory():
 
         legWidth = 1
         self.rFootx = pxyz(0.15,-0.1*legWidth,0.315332)
-        self.lFootx = pxyz(0.15,0.1*legWidth,0.115332)
+        self.lFootx = pxyz(0.15,0.1*legWidth,self.footLength)
 
         # initial joints 30x1 for starting pushup
-        self.q0 = np.array([0,0,0,-np.pi/2,-2.789,-1.22,-1.35,0.894,0.04,1.38,0,0.734,0,-0.16,0,0,0,0,2.84,0.5,np.pi/2,0.07,0.3,-np.pi/2,0,0.5,0,0.07,0,0]).reshape((-1,1))
+        self.q0 = np.array([0, 0, 0, -1.5502113021248296, -2.3635353911430195, -1.1312561648621262, -1.1109466648273143, 
+            0.9228669378135692, 0.0664798806697947, 1.131716436605653, 0, 0.6708134636366058, 0, -0.1035839070171088, 0, 0, 0, 
+            0.21376183543550636, -2.3575421134495183, 0.5750976580966708, 1.4995142416205685, -0.17074581753182755, -0.2243273256568322, 
+            4.1871646996517535, 0, 0.4936152565332729, 0, 0.07361430008622123, 0, 0]).reshape((-1,1))
+
+        #self.q0 = np.array([0,0,0,-np.pi/2,-2.789,-1.22,-1.35,0.894,0.04,1.38,0,0.734,0,-0.16,0,0,0,0,2.84,0.5,np.pi/2,0.07,0.3,-np.pi/2,0,0.5,0,0.07,0,0]).reshape((-1,1))
 
         # change to use q0 once q0 is known to be correct
         self.q = self.q0
@@ -188,16 +193,12 @@ class Trajectory():
     def inverse(self, J, weight = 0.005):
         return np.linalg.inv(J.T @ J + weight**2 * np.eye(len(J.T))) @ J.T
 
-    def getSecondaryTaskGoals(self):
+    def  getSecondaryTaskGoals(self):
         return [
-            ('l_arm_wrx', 0), ('r_arm_wrx', 0), 
-            #('l_arm_ely', 0), ('r_arm_ely', 0), 
-            #('l_arm_wry2', -0.01), ('r_arm_wry2', -0.01), # comment out to avoid the elbow turning motion but notice for pushup elbow is oriented different at top and bottom
-            ('l_arm_elx', np.pi/2), ('r_arm_elx', -np.pi/2), 
-            ('l_arm_shx', -np.pi/6), ('r_arm_shx', np.pi/6),
-            #('l_arm_shz', np.pi/12), ('r_arm_shz', -np.pi/12) # comment out for elbows to not go as outwards during motion
+            #('r_arm_wry', -np.pi/2), #('l_arm_wry', 0),
+            ('l_arm_shx', -np.pi/2), ('r_arm_shx', np.pi/2), # flaring out
+            ('l_arm_ely', -3*np.pi/4), ('r_arm_ely', -3*np.pi/4),
         ]
-
     # Evaluate at the given time. This was last called (dt) ago.
     def evaluateJoints(self, t, dt):
         # Grab last qoint value 
@@ -222,7 +223,7 @@ class Trajectory():
         secondaryTaskJoints = self.getSecondaryTaskGoals()
         for jointLabel, value in secondaryTaskJoints:
             idx = self.jointnames().index(jointLabel)
-            qdotsecondary[idx][0] = (value - qdotprimary[idx][0]) * 1/dt
+            qdotsecondary[idx][0] = (value - q[idx][0]) * 1/dt
         qdotsecondary = self.limitJointVelocities(qdotsecondary, 2)
         nullspace = np.eye(len(J.T)) - self.inverse(J) @ J
         qdot = qdotprimary + nullspace @ qdotsecondary
@@ -233,9 +234,7 @@ class Trajectory():
         # integrate for q
         q = q + dt * qdot
         self.q = q
-        for j in q:
-            if abs(j[0]) > np.pi:
-                print("error") 
+
         # update chain joint values
         self.larmchain.setjoints(self.getSpecificJoints(self.q, self.larmjoints).reshape((-1,1)))
         self.rarmchain.setjoints(self.getSpecificJoints(self.q, self.rarmjoints).reshape((-1,1)))

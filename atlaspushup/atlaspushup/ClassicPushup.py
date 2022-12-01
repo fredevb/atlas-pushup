@@ -37,7 +37,7 @@ class Trajectory():
 
         # initialize atlas dimensions
         self.legLength = 0.941
-        self.footLength = 0.17
+        self.footLength = 0.195
 
         # initialize pushup data
         self.pushupDuration = 8
@@ -58,7 +58,7 @@ class Trajectory():
         self.llegchain = KinematicChain(node, 'pelvis', 'l_foot', self.llegjoints)
 
         # initialize pelvis data
-        self.pelvisStartAngle = np.radians(60) #np.radians(57.2)
+        self.pelvisStartAngle = np.radians(58.8)
         self.pelvisEndAngle = np.radians(75)
         Rpelvis, ppelvis = self.getPelvisData(0)
         self.Tpelvis = T_from_Rp(Rpelvis, ppelvis)
@@ -71,8 +71,8 @@ class Trajectory():
         self.lHandx = pxyz(1.32155,0.2256*handWidth,0.115332)
 
         legWidth = 1
-        self.rFootx = pxyz(0.15,-0.1*legWidth,0.115332)
-        self.lFootx = pxyz(0.15,0.1*legWidth,0.115332)
+        self.rFootx = pxyz(0.15,-0.1*legWidth,self.footLength)
+        self.lFootx = pxyz(0.15,0.1*legWidth,self.footLength)
 
         # initial joints 30x1 for starting pushup
         self.q0 = np.array([0,0,0,0,0,-0.5,-np.pi/2,0,0,0,0,0,0,0,0,0,0,0,0,0.5,np.pi/2,0,0,0,0,0,0,0,0,0]).reshape((-1,1))

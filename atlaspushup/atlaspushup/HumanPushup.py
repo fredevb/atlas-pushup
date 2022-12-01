@@ -43,7 +43,7 @@ class Trajectory():
 
         # initialize atlas dimensions
         self.legLength = 0.941
-        self.footLength = 0.17
+        self.footLength = 0.195
 
         # initialize pushup data
         self.pushupDuration = 8
@@ -64,7 +64,7 @@ class Trajectory():
         self.llegchain = KinematicChain(node, 'pelvis', 'l_foot', self.llegjoints)
 
         # initialize pelvis data
-        self.pelvisStartAngle = np.radians(58.2)
+        self.pelvisStartAngle = np.radians(58.8)
         self.pelvisEndAngle = np.radians(75)
         Rpelvis, ppelvis = self.getPelvisData(0)
         self.Tpelvis = T_from_Rp(Rpelvis, ppelvis)
@@ -81,37 +81,10 @@ class Trajectory():
         self.lFootx = pxyz(0.15,0.1*legWidth,self.footLength)
 
         # initial joints 30x1 for starting pushup
-        self.q0 = np.array( [[ 0.        ]
-            ,[ 0.        ]
-            ,[ 0.        ]
-            ,[-0.46175475]
-            ,[-1.57785209]
-            ,[-0.5095605 ]
-            ,[-1.35355532]
-            ,[ 0.28318867]
-            ,[-0.20350509]
-            ,[ 0.30804894]
-            ,[ 0.        ]
-            ,[ 0.71469534]
-            ,[ 0.        ]
-            ,[-0.15968613]
-            ,[ 0.        ]
-            ,[ 0.        ]
-            ,[ 0.        ]
-            ,[ 0.46220892]
-            ,[-1.56647426]
-            ,[ 0.50693399]
-            ,[ 1.35335046]
-            ,[-0.28291931]
-            ,[-0.20556648]
-            ,[ 3.44005524]
-            ,[ 0.        ]
-            ,[ 0.71469534]
-            ,[ 0.        ]
-            ,[-0.15968613]
-            ,[ 0.        ]
-            ,[ 0.        ]])
-        
+        self.q0 = np.array([0,0,0,-0.4617547,-1.57785209,-0.5095605,
+                -1.35355532,0.28318867,-0.20350509,0.30804894,0,0.71469534,0,
+                -0.15968613,0,0,0,0.46220892,-1.56647426,0.50693399,1.35335046,
+                -0.28291931,-0.20556648,3.44005524,0,0.71469534,0,-0.15968613,0,0]).reshape((-1,1))
 
 
         # change to use q0 once q0 is known to be correct
@@ -221,35 +194,9 @@ class Trajectory():
 
     def  getSecondaryTaskGoals(self):
         return [
-
             ('l_arm_shx', -np.pi/3), ('r_arm_shx', np.pi/3), # flaring out
             ('l_arm_ely', -np.pi/2), ('r_arm_ely', -np.pi/2),
-            
-
-        
-        
         ]
-        #  # elbows bend
-
-        """    
-            ('l_arm_wrx', 0), ('r_arm_wrx', 0), 
-            ('l_arm_ely', 0), ('r_arm_ely', 0), 
-            ('l_arm_wry2', -0.01), ('r_arm_wry2', -0.01), # comment out to avoid the elbow turning motion but notice for pushup elbow is oriented different at top and bottom
-            ('l_arm_elx', np.pi/2), ('r_arm_elx', -np.pi/2), 
-            ('l_arm_shx', -np.pi/6), ('r_arm_shx', np.pi/6),
-            ('l_arm_shz', np.pi/12), ('r_arm_shz', -np.pi/12) # comment out for elbows to not go as outwards during motion
-        """
-
-        """
-            ('l_arm_wrx', 0), ('r_arm_wrx', 0), 
-            ('l_arm_elx', 1.5), ('r_arm_elx', 1.5), 
-            ('l_arm_ely', 1.5), ('r_arm_ely', 1.5), 
-            ('l_arm_wry2', -0.01), ('r_arm_wry2', -0.01), # comment out to avoid the elbow turning motion but notice for pushup elbow is oriented different at top and bottom
-            ('l_arm_elx', np.pi/2), ('r_arm_elx', -np.pi/2), 
-            #('l_arm_shx', -0.5), ('r_arm_shx', 0.5),
-            ('l_arm_shz', -1), ('r_arm_shz', 1) # comment out for elbows to not go as outwards during motion
-        
-        """
 
     # Evaluate at the given time. This was last called (dt) ago.
     def evaluateJoints(self, t, dt):
@@ -275,7 +222,6 @@ class Trajectory():
         secondaryTaskJoints = self.getSecondaryTaskGoals()
         for jointLabel, value in secondaryTaskJoints:
             idx = self.jointnames().index(jointLabel)
-            #qdotsecondary[idx][0] = (value - qdotprimary[idx][0]) * 1/dt
             qdotsecondary[idx][0] = (value - q[idx][0]) * 1000
         qdotsecondary = self.limitJointVelocities(qdotsecondary, 2)
         nullspace = np.eye(len(J.T)) - self.inverse(J) @ J
@@ -288,9 +234,7 @@ class Trajectory():
         # integrate for q
         q = q + dt * qdot
         self.q = q
-        for j in q:
-            if abs(j[0]) > np.pi:
-                print("error") 
+
         # update chain joint values
         self.larmchain.setjoints(self.getSpecificJoints(self.q, self.larmjoints).reshape((-1,1)))
         self.rarmchain.setjoints(self.getSpecificJoints(self.q, self.rarmjoints).reshape((-1,1)))
