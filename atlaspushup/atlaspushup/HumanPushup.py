@@ -222,7 +222,7 @@ class Trajectory():
         secondaryTaskJoints = self.getSecondaryTaskGoals()
         for jointLabel, value in secondaryTaskJoints:
             idx = self.jointnames().index(jointLabel)
-            qdotsecondary[idx][0] = (value - q[idx][0]) * 1000
+            qdotsecondary[idx][0] = (value - q[idx][0]) * 1/dt
         qdotsecondary = self.limitJointVelocities(qdotsecondary, 2)
         nullspace = np.eye(len(J.T)) - self.inverse(J) @ J
         qdot = qdotprimary + nullspace @ qdotsecondary
