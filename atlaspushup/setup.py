@@ -26,7 +26,8 @@ setup(
         'console_scripts': [
             'ClassicPushup = atlaspushup.ClassicPushup:main',
             'HumanPushup = atlaspushup.HumanPushup:main',
-            'AsymmetricPushup = atlaspushup.AsymmetricPushup:main'
+            'AsymmetricPushup = atlaspushup.AsymmetricPushup:main',
+            'NoslidePushup = atlaspushup.NoslidePushup:main'
         ],
     },
 )
