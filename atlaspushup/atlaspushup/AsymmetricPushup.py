@@ -43,7 +43,7 @@ class Trajectory():
 
         # initialize atlas dimensions
         self.legLength = 0.941
-        self.footLength = 0.195
+        self.footLength = 0.17
 
         # initialize pushup data
         self.pushupDuration = 8
@@ -56,7 +56,8 @@ class Trajectory():
 
         # fixed joints at 0
         self.armNonContributingJoints = ['back_bkz', 'back_bky', 'back_bkx']
-        self.legNonContributingJoints = ['l_leg_hpz', 'l_leg_hpx', 'l_leg_kny', 'r_leg_hpz', 'r_leg_hpx', 'r_leg_kny']
+        self.legNonContributingJoints = []
+        #['l_leg_hpz', 'l_leg_hpx', 'l_leg_kny', 'r_leg_hpz', 'r_leg_hpx', 'r_leg_kny']
 
         self.rarmchain = KinematicChain(node, 'pelvis', 'r_hand', self.rarmjoints)
         self.larmchain = KinematicChain(node, 'pelvis', 'l_hand', self.larmjoints)
@@ -64,7 +65,7 @@ class Trajectory():
         self.llegchain = KinematicChain(node, 'pelvis', 'l_foot', self.llegjoints)
 
         # initialize pelvis data
-        self.pelvisStartAngle = np.radians(58.8)
+        self.pelvisStartAngle = np.radians(58.2)
         self.pelvisEndAngle = np.radians(65)
         Rpelvis, ppelvis = self.getPelvisData(0)
         self.Tpelvis = T_from_Rp(Rpelvis, ppelvis)
@@ -77,14 +78,15 @@ class Trajectory():
         self.lHandx = pxyz(1.32155,0.2256*handWidth,0.315332)
 
         legWidth = 1
-        self.rFootx = pxyz(0.15,-0.1*legWidth,0.315332)
-        self.lFootx = pxyz(0.15,0.1*legWidth,self.footLength)
+        self.rFootx = pxyz(0.4,-0.1*legWidth,0.25)
+        self.lFootx = pxyz(0.18,0.1*legWidth,self.footLength)
 
         # initial joints 30x1 for starting pushup
-        self.q0 = np.array([0, 0, 0, -1.5502113021248296, -2.3635353911430195, -1.1312561648621262, -1.1109466648273143, 
-            0.9228669378135692, 0.0664798806697947, 1.131716436605653, 0, 0.6708134636366058, 0, -0.1035839070171088, 0, 0, 0, 
-            0.21376183543550636, -2.3575421134495183, 0.5750976580966708, 1.4995142416205685, -0.17074581753182755, -0.2243273256568322, 
-            4.1871646996517535, 0, 0.4936152565332729, 0, 0.07361430008622123, 0, 0]).reshape((-1,1))
+        self.q0 = np.array([0.0, 0.0, 0.0, -1.6744468610502243, -2.3634898763106267, -1.2022226425681903, -1.0844339711601498, 
+        0.9661818297798207, 0.0966199624224511, 1.1637194479574562, 0.018407140019520405, 0.18724890015327436, -0.015744589279990052, 
+        -0.6635552259791262, 0.009536153663848084, 1.0209221006340914, 0.0, 0.5888756079761376, -2.359957482615953, 0.713329688907483, 
+        1.3771022868709777, -0.3591145401239568, -0.01677160206650167, 4.060362889847713, -0.028416786443543965, -0.26538931544288924, 
+        0.024305856129731535, -1.2474549280356997, -0.014723511856833101, 2.0575638902868794]).reshape((-1,1))
 
         #self.q0 = np.array([0,0,0,-np.pi/2,-2.789,-1.22,-1.35,0.894,0.04,1.38,0,0.734,0,-0.16,0,0,0,0,2.84,0.5,np.pi/2,0.07,0.3,-np.pi/2,0,0.5,0,0.07,0,0]).reshape((-1,1))
 
