@@ -37,7 +37,7 @@ class Trajectory():
 
         # initialize atlas dimensions
         self.legLength = 0.941
-        self.footLength = 0.195
+        self.footLength = 0.17
 
         # initialize pushup data
         self.pushupDuration = 8
@@ -50,7 +50,8 @@ class Trajectory():
 
         # fixed joints at 0
         self.armNonContributingJoints = ['back_bkz', 'back_bky', 'back_bkx', 'r_arm_shz', 'l_arm_shz']
-        self.legNonContributingJoints = ['l_leg_hpz', 'l_leg_hpx', 'l_leg_kny', 'r_leg_hpz', 'r_leg_hpx', 'r_leg_kny']
+        self.legNonContributingJoints = [] 
+        #['l_leg_hpz', 'l_leg_hpx', 'l_leg_kny', 'r_leg_hpz', 'r_leg_hpx', 'r_leg_kny']
 
         self.rarmchain = KinematicChain(node, 'pelvis', 'r_hand', self.rarmjoints)
         self.larmchain = KinematicChain(node, 'pelvis', 'l_hand', self.larmjoints)
@@ -58,7 +59,7 @@ class Trajectory():
         self.llegchain = KinematicChain(node, 'pelvis', 'l_foot', self.llegjoints)
 
         # initialize pelvis data
-        self.pelvisStartAngle = np.radians(58.8)
+        self.pelvisStartAngle = np.radians(58.2)
         self.pelvisEndAngle = np.radians(75)
         Rpelvis, ppelvis = self.getPelvisData(0)
         self.Tpelvis = T_from_Rp(Rpelvis, ppelvis)
@@ -71,15 +72,21 @@ class Trajectory():
         self.lHandx = pxyz(1.32155,0.2256*handWidth,0.115332)
 
         legWidth = 1
-        self.rFootx = pxyz(0.15,-0.1*legWidth,self.footLength)
-        self.lFootx = pxyz(0.15,0.1*legWidth,self.footLength)
+        self.lFootx = pxyz(0.09, 0.1*legWidth, self.footLength)
+        self.rFootx = pxyz(0.09, -0.1*legWidth, self.footLength)
 
         # initial joints 30x1 for starting pushup
-        self.q0 = np.array([0,0,0,0,0,-0.5,-np.pi/2,0,0,0,0,0,0,0,0,0,0,0,0,0.5,np.pi/2,0,0,0,0,0,0,0,0,0]).reshape((-1,1))
-
+        #self.q0 = np.array([0,0,0,0,0,-np.pi/2,-np.pi/2,0,0,0,0,0,0,0,0,np.pi/18,0,0,0,np.pi/2,np.pi/2,0,0,0,0,0,0,0,0,np.pi/18]).reshape((-1,1))
+        self.q0 = np.array([0.0, 0.0, 0.0, -12.004649546155566, 2.1693717770789004e-16, 
+                5.508480845182617, -1.5707963267948966, 5.941159484480346, 4.220199195733661e-17, 
+                -1.5707963267948968, 0.01620559597619988, 0.5036691599444917, -0.013772897059178658, 
+                -0.18380420714204448, 0.008540097158546598, 0.2352030720046163, 0.0, 12.004649546155566, 
+                2.782598988537072e-16, -5.508480845182617, 1.5707963267948966, -5.941159484480346, 
+                -2.830612233456628e-16, 1.5707963267948968, -0.01620559597619988, 0.5036691599444917, 
+                0.013772897059178658, -0.18380420714204448, -0.008540097158546598, 0.2352030720046163]).reshape((-1,1))
+                
         # change to use q0 once q0 is known to be correct
         self.q = self.q0
-        self.err = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]).reshape((-1,1))
 
         # set joints
         self.larmchain.setjoints(self.getSpecificJoints(self.q, self.larmjoints).reshape((-1,1)))
@@ -109,6 +116,12 @@ class Trajectory():
             idx = self.jointnames().index(jointLabel)
             joints.append(allJoints[idx])
         return np.array(joints)
+
+    def limitJointVelocities(self, qdot, limit = 2):
+        for i in range(len(qdot)):
+            if np.abs(qdot[i][0]) > limit:
+                qdot[i][0] = limit if qdot[i][0] > limit else -limit
+        return qdot
 
     # input should be list of (Jacobian, related_joint_labels) - returns single Jacobian of size nx30 where n is the number of tasks across all jaobians
     def stackJacobians(self, jacobians, zeroContributionJoints = []):
@@ -175,6 +188,9 @@ class Trajectory():
         return (xddot, J)
 
 
+    def inverse(self, J, weight = 0.005):
+        return np.linalg.inv(J.T @ J + weight**2 * np.eye(len(J.T))) @ J.T
+
     # Evaluate at the given time. This was last called (dt) ago.
     def evaluateJoints(self, t, dt):
         # Grab last qoint value 
@@ -192,7 +208,7 @@ class Trajectory():
         xddot = np.vstack((LAxddot, RAxddot, LLxddot, RLxddot))
 
         #compute qdot
-        qdot = np.linalg.pinv(J) @ xddot
+        qdot = self.inverse(J) @ xddot
         
         # integrate for q
         q = q + dt * qdot

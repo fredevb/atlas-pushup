@@ -36,14 +36,13 @@ def line(t, T, p0, pf):
 #
 #   Trajectory Class
 #
-# IDEA: IMPLEMENT INVERSE KINEMATICS OF HANDS FIRST, THEN ADD FEET
 class Trajectory():
     # Initialization.
     def __init__(self, node):
 
         # initialize atlas dimensions
-        self.legLength = 0.941
-        self.footLength = 0.195
+        self.legLength = 0.95
+        self.footLength = 0.17
 
         # initialize pushup data
         self.pushupDuration = 8
@@ -56,7 +55,8 @@ class Trajectory():
 
         # fixed joints at 0
         self.armNonContributingJoints = ['back_bkz', 'back_bky', 'back_bkx']
-        self.legNonContributingJoints = ['l_leg_hpz', 'l_leg_hpx', 'l_leg_kny', 'r_leg_hpz', 'r_leg_hpx', 'r_leg_kny']
+        self.legNonContributingJoints = []
+        # ['l_leg_hpz', 'l_leg_hpx', 'l_leg_kny', 'r_leg_hpz', 'r_leg_hpx', 'r_leg_kny']
 
         self.rarmchain = KinematicChain(node, 'pelvis', 'r_hand', self.rarmjoints)
         self.larmchain = KinematicChain(node, 'pelvis', 'l_hand', self.larmjoints)
@@ -72,21 +72,25 @@ class Trajectory():
 
         # initialize qs and xs
         # initial x (6x1 - 3x1 for left hand, 3x1 for right hand) with respect to world frame
-        handWidth = 1
+        handWidth = 1.4
         self.rHandx = pxyz(1.32155,-0.2256*handWidth,0.115332)
         self.lHandx = pxyz(1.32155,0.2256*handWidth,0.115332)
 
         legWidth = 1
-        self.rFootx = pxyz(0.15,-0.1*legWidth,self.footLength)
-        self.lFootx = pxyz(0.15,0.1*legWidth,self.footLength)
+        self.rFootx = pxyz(0.07, -0.1*legWidth, self.footLength)
+        self.lFootx = pxyz(0.07, 0.1*legWidth, self.footLength)
 
         # initial joints 30x1 for starting pushup
-        self.q0 = np.array([0,0,0,-0.4617547,-1.57785209,-0.5095605,
-                -1.35355532,0.28318867,-0.20350509,0.30804894,0,0.71469534,0,
-                -0.15968613,0,0,0,0.46220892,-1.56647426,0.50693399,1.35335046,
-                -0.28291931,-0.20556648,3.44005524,0,0.71469534,0,-0.15968613,0,0]).reshape((-1,1))
-
-
+        
+        self.q0 = np.array([0.0, 0.0, 0.0, -1.0665207119388567, -1.582323088245135, 
+                -0.5705856587004811, -0.9068233383949136, 0.515869865694755, -0.15915481819248703, 
+                0.48879079149892446, 0.015488554035449355, 0.2645835607263747, -0.013248255893721639, 
+                -0.22017916590252892, 0.00802388863784277, 0.5001861909675166, 0.0, 1.066520711938855, 
+                -1.5823230882452168, 0.5705856587005895, 0.9068233383949171, -0.5158698656947643, 
+                -0.15915481819249414, 3.6303834450888752, -0.015488554035449355, 0.2645835607263747, 
+                0.013248255893721639, -0.22017916590252892, -0.00802388863784277, 0.5001861909675166] 
+            ).reshape((-1,1))
+        
         # change to use q0 once q0 is known to be correct
         self.q = self.q0
 
@@ -170,9 +174,6 @@ class Trajectory():
         fixedLegRotation = Roty(np.pi/2)
         totalFixedRotation = fixedArmRotation if isArms else fixedLegRotation
 
-        # without the lock on the shoulder joints set lefthand roty below and right hand to -np.pi/4
-        # leftHand Roty can be pi/2 for better motion
-
         Rd = np.linalg.inv(R_from_T(self.Tpelvis)) @ totalFixedRotation
 
         # get current relative to pelvis
@@ -202,7 +203,7 @@ class Trajectory():
     def evaluateJoints(self, t, dt):
         # Grab last qoint value 
         q = self.q
-
+        
         (LAxddot, LAJac) = self.getInverseKinematicsData(self.larmchain, self.larmjoints, self.armNonContributingJoints, self.lHandx, True, True, dt)
         (RAxddot, RAJac) = self.getInverseKinematicsData(self.rarmchain, self.rarmjoints, self.armNonContributingJoints, self.rHandx, False, True, dt)
         (LLxddot, LLJac) = self.getInverseKinematicsData(self.llegchain, self.llegjoints, self.legNonContributingJoints, self.lFootx, True, False, dt)
@@ -226,8 +227,6 @@ class Trajectory():
         qdotsecondary = self.limitJointVelocities(qdotsecondary, 2)
         nullspace = np.eye(len(J.T)) - self.inverse(J) @ J
         qdot = qdotprimary + nullspace @ qdotsecondary
-
-        
         qdot = self.limitJointVelocities(qdot, 2)
 
         # left arm shx must be negative, right arm shx must be positive
@@ -263,11 +262,12 @@ class Trajectory():
 
             a = self.pelvisStartAngle + self.pelvisEndAngle - a
 
-        #a = np.radians(68)
         Rpelvis = Roty(a)
 
+        angle_from_horizontal = np.pi/2 - a
         # compute pelvis pxyz
-        ppelvis = pxyz(np.sin(a)*(self.legLength) , 0.0, np.cos(a)* self.legLength + self.footLength)
+        ppelvis = pxyz(np.cos(angle_from_horizontal)*(self.legLength) , 0.0, np.sin(angle_from_horizontal)* (self.legLength + self.footLength))
+
         return Rpelvis, ppelvis
 
 #
