@@ -28,6 +28,7 @@ setup(
             'HumanPushup = atlaspushup.HumanPushup:main',
             'AsymmetricPushup = atlaspushup.AsymmetricPushup:main',
             'asymmetricpushupstand = atlaspushup.asymmetricpushupstand:main',
+            'JumpingPushup = atlaspushup.JumpingPushup:main',
         ],
     },
 )
