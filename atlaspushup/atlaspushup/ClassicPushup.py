@@ -84,6 +84,16 @@ class Trajectory():
                 2.782598988537072e-16, -5.508480845182617, 1.5707963267948966, -5.941159484480346, 
                 -2.830612233456628e-16, 1.5707963267948968, -0.01620559597619988, 0.5036691599444917, 
                 0.013772897059178658, -0.18380420714204448, -0.008540097158546598, 0.2352030720046163]).reshape((-1,1))
+        
+        for i in range( len(self.q0)):
+            if self.q0[i][0] > 2*np.pi:
+                while self.q0[i][0] > 2*np.pi:
+                    self.q0[i][0] -= 2*np.pi
+            elif self.q0[i][0] < -2*np.pi:
+                while self.q0[i][0] < -2*np.pi:
+                    self.q0[i][0] += 2*np.pi
+
+        
                 
         # change to use q0 once q0 is known to be correct
         self.q = self.q0
@@ -212,7 +222,9 @@ class Trajectory():
         
         # integrate for q
         q = q + dt * qdot
+
         self.q = q
+
 
         # update chain joint values
         self.larmchain.setjoints(self.getSpecificJoints(self.q, self.larmjoints).reshape((-1,1)))
