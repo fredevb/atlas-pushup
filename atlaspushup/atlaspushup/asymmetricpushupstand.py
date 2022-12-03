@@ -20,7 +20,7 @@ from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
 
 
-def box(x, y, z, lx, ly, lz):
+def box(x, y, z, lx, ly, lz, r, g, b):
     # Create the cube marker.
     marker = Marker()
     marker.type               = Marker.CUBE
@@ -37,9 +37,9 @@ def box(x, y, z, lx, ly, lz):
     marker.scale.y            = ly
     marker.scale.z            = lz
 
-    marker.color.r            = 1.0
-    marker.color.g            = 0.0
-    marker.color.b            = 0.0
+    marker.color.r            = r
+    marker.color.g            = g
+    marker.color.b            = b
     marker.color.a            = 1.0     # Transparency
 
     return marker
@@ -51,9 +51,19 @@ def fence():
 
     x = 1.32155
     y = 0.2256
-    z = 0.2
+    z = 0.205
     # Append the bars.
-    markers.append(box(x, y, z/2 , 0.3, 0.3, z))
+    markers.append(box(x, y, z/2 , 0.3, 0.3, z, 1.0, 0.0, 0.0))
+
+    x = 0.325
+    y = -0.1
+    z = 0.076
+    markers.append(box(x, y, z/2, 0.2, 0.2, z, 0.0, 1.0, 0.0))
+
+    x = 0.325
+    y = -0.1
+    z = 0.076
+    markers.append(box(0.75, 0.0, 0.0, 3.0, 2.0, 0.001, 1.0, 1.0, 1.0))
 
     # Return the list
     return markers
