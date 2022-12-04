@@ -64,7 +64,7 @@ class Trajectory():
         self.llegchain = KinematicChain(node, 'pelvis', 'l_foot', self.llegjoints)
 
         # initialize pelvis data
-        self.pelvisStartAngle = np.radians(55)
+        self.pelvisStartAngle = np.radians(45)
         self.pelvisEndAngle = np.radians(75)
         Rpelvis, ppelvis = self.getPelvisData(0)
         self.Tpelvis = T_from_Rp(Rpelvis, ppelvis)
@@ -82,13 +82,9 @@ class Trajectory():
 
         # initial joints 30x1 for starting pushup
         
-        self.q0 = np.array([0.0, 0.0, 0.0, -0.3303847458852282, -1.2207744505890645, -0.4549021849666738, 
-                -1.2786008281529375, 0.09149914119477029, -1.0512615420562412, 0.8377193438894045, 0.016241159331411292, 
-                0.3630290882586511, -0.013303847336225302, -0.22422917238161905, 0.009316008970809713, 0.4721207582189185, 
-                0.0, 0.33038474588530553, -1.2207744505878286, 0.45490218496645074, 1.2786008281529821, -0.09149914119457479, 
-                -1.051261542056076, 3.9793119974777365, -0.016241159331411292, 0.3630290882586511, 0.013303847336225302, 
-                -0.22422917238161905, -0.009316008970809713, 0.4721207582189185]).reshape((-1,1))
         
+        self.q0 = np.array([[ 0., 0., 0.,-0.24066035,-0.98071807,-0.45828595,-1.31959197,-0.02411301,-1.02116576, 0.57308272, 0.01587114, 0.32306865,-0.01328865,-0.2120285 , 0.00866679, 0.46308828, 0., 0.22411183,-0.91649101, 0.44608741, 1.33187143, 0.03588152,-1.16108842, 3.78129458,-0.01587114, 0.32306865, 0.01328865,-0.2120285 ,-0.00866679, 0.46308828]]).reshape(-1,1)
+
         # change to use q0 once q0 is known to be correct
         self.q = self.q0
 
@@ -188,15 +184,16 @@ class Trajectory():
                 qdot[i][0] = limit if qdot[i][0] > limit else -limit
         return qdot
 
-    def inverse(self, J, weight = 0.005):
+    def inverse(self, J, weight = 0.2):
         return np.linalg.inv(J.T @ J + weight**2 * np.eye(len(J.T))) @ J.T
 
     def  getSecondaryTaskGoals(self):
         return [
             ('l_arm_shx', -np.pi/3), ('r_arm_shx', np.pi/3), # flaring out
-            ('l_arm_ely', -np.pi/2), ('r_arm_ely', -np.pi/2),
-            ('l_arm_wry', -np.pi/6), ('r_arm_wry', -np.pi/6),
-            ('l_arm_wry2', -np.pi/6), ('r_arm_wry2', -np.pi/6)
+            ('l_arm_elx', np.pi/2), ('r_arm_elx', -np.pi/2),
+            ('l_arm_ely', np.pi/2), ('r_arm_ely', np.pi/2),
+            ('l_arm_wry', np.pi/6), ('r_arm_wry', -np.pi/6)
+            
         ]
 
     # Evaluate at the given time. This was last called (dt) ago.
@@ -216,18 +213,19 @@ class Trajectory():
         xddot = np.vstack((LAxddot, RAxddot, LLxddot, RLxddot))
 
         #compute qdot
-        qdotprimary = self.limitJointVelocities(self.inverse(J) @ xddot, 2)
-
+        qdotprimary = self.limitJointVelocities(self.inverse(J) @ xddot, 6)
+        qdotprimary = self.inverse(J) @ xddot
+       
         # establish secondary task
         qdotsecondary = np.zeros((30,1))
         secondaryTaskJoints = self.getSecondaryTaskGoals()
         for jointLabel, value in secondaryTaskJoints:
             idx = self.jointnames().index(jointLabel)
-            qdotsecondary[idx][0] = (value - q[idx][0]) * 1/dt
-        qdotsecondary = self.limitJointVelocities(qdotsecondary, 2)
+            qdotsecondary[idx][0] = (value - q[idx][0]) *20
         nullspace = np.eye(len(J.T)) - self.inverse(J) @ J
         qdot = qdotprimary + nullspace @ qdotsecondary
-        qdot = self.limitJointVelocities(qdot, 2)
+        qdot = self.limitJointVelocities(qdot,8)
+        
 
         # left arm shx must be negative, right arm shx must be positive
         # integrate for q
@@ -241,32 +239,44 @@ class Trajectory():
         self.llegchain.setjoints(self.getSpecificJoints(self.q, self.llegjoints).reshape((-1,1)))
         self.rlegchain.setjoints(self.getSpecificJoints(self.q, self.rlegjoints).reshape((-1,1)))
 
+        if t < 0.02:
+            print(q,"\n\n")
+
         return (q.flatten().tolist(), qdot.flatten().tolist())
 
     def evaluatePelvis(self, t, dt):
         # update to find pxyz and rotation at given time
-        pushupTime = t % self.pushupDuration
-        Rpelvis, ppelvis = self.getPelvisData(pushupTime)
+        
+        
+        Rpelvis, ppelvis = self.getPelvisData(t)
         Tpelvis = T_from_Rp(Rpelvis, ppelvis)
         self.Tpelvis = Tpelvis
         return Tpelvis
 
     def getPelvisData(self, t):
         # compute pelvis theta
-        halfTime = self.pushupDuration / 2
-        if t < halfTime:
-            a, adot = spline(t, halfTime, self.pelvisStartAngle, self.pelvisEndAngle)
+        if t < 0.5*self.pushupDuration:
+            halfTime = self.pushupDuration / 2
+            a, adot = spline(t, halfTime, np.radians(57.2), self.pelvisEndAngle)
         else:
-            t1 = t - 4
-            a, adot = spline(t1, halfTime, self.pelvisStartAngle, self.pelvisEndAngle)
 
-            a = self.pelvisStartAngle + self.pelvisEndAngle - a
+            t = t % self.pushupDuration
+            halfTime = self.pushupDuration / 2
+            if t < halfTime:
+                a, adot = spline(t, halfTime, self.pelvisStartAngle, self.pelvisEndAngle)
+            else:
+                t1 = t - 4
+                a, adot = spline(t1, halfTime, self.pelvisStartAngle, self.pelvisEndAngle)
 
+                a = self.pelvisStartAngle + self.pelvisEndAngle - a
+        
         Rpelvis = Roty(a)
 
         angle_from_horizontal = np.pi/2 - a
         # compute pelvis pxyz
         ppelvis = pxyz(np.cos(angle_from_horizontal)*(self.legLength) , 0.0, np.sin(angle_from_horizontal)* (self.legLength + self.footLength))
+
+        
 
         return Rpelvis, ppelvis
 
