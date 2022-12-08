@@ -59,7 +59,7 @@ class Trajectory():
         self.llegchain = KinematicChain(node, 'pelvis', 'l_foot', self.llegjoints)
 
         # initialize pelvis data
-        self.pelvisStartAngle = np.radians(57.2)
+        self.pelvisStartAngle = np.radians(57.5)
         self.pelvisEndAngle = np.radians(75)
         Rpelvis, ppelvis = self.getPelvisData(0)
         self.Tpelvis = T_from_Rp(Rpelvis, ppelvis)
@@ -201,7 +201,7 @@ class Trajectory():
         return (xddot, J)
 
 
-    def inverse(self, J, weight = 0.005):
+    def inverse(self, J, weight = 0.2):
         return np.linalg.inv(J.T @ J + weight**2 * np.eye(len(J.T))) @ J.T
 
     # Evaluate at the given time. This was last called (dt) ago.
